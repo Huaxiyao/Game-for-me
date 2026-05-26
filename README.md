@@ -12,6 +12,7 @@
 | 舒尔特方格 Pro | `schulte-pro.html` | 进阶多尺寸/数据图表 |
 | 反应速度测试 | `reaction-test.html` | 视觉反应红绿变化计时 |
 | 五子棋 | `gomoku.html` | 双人对战棋盘博弈 |
+| 手速测试 | `cps-test.html` | 10秒CPS点击测试 |
 
 ## 使用方式
 
