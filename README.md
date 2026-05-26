@@ -35,8 +35,7 @@
 **本地运行**（克隆仓库）：
 ```bash
 git clone https://github.com/Huaxiyao/Game-for-me.git
-``
-然后用浏览器打开任意 .html 文件。
+``\n然后用浏览器打开任意 .html 文件。
 
 ---
 💡 如果有新游戏建议或遇到问题，欢迎提 Issue！
