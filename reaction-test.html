@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>反应速度测试</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #f0f4ff 0%, #e8edf5 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+.container {
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  padding: 36px 24px 28px;
+}
+h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.3px;
+  margin-bottom: 2px;
+}
+.subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+.controls-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.controls-row label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.controls-row select {
+  padding: 4px 8px 4px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #fff;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.controls-row select:focus { border-color: #818cf8; }
+.circle-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 18px;
+}
+.circle-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #e2e8f0, #cbd5e1, #e2e8f0);
+  opacity: 0.5;
+  z-index: 0;
+}
+.circle-area {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+  transition: transform 0.15s, box-shadow 0.2s;
+  will-change: transform;
+}
+.circle-area:active { transform: scale(0.97); }
+.circle-area.idle {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  box-shadow: 0 12px 40px rgba(99,102,241,0.30);
+}
+.circle-area.idle::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.circle-area.waiting {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  box-shadow: 0 12px 40px rgba(239,68,68,0.30);
+}
+.circle-area.waiting::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, transparent 50%);
+  pointer-events: none;
+}
+.circle-area.ready {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 12px 48px rgba(16,185,129,0.35);
+  animation: pulse-ready 0.8s ease-out;
+}
+.circle-area.ready::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+.circle-area.clicked-early {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 12px 40px rgba(245,158,11,0.30);
+  animation: shake 0.4s;
+}
+.circle-area.finished {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  box-shadow: 0 12px 40px rgba(139,92,246,0.30);
+}
+.circle-area.finished::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+@keyframes pulse-ready {
+  0% { transform: scale(0.96); }
+  40% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.circle-text {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.3px;
+  position: relative;
+  z-index: 1;
+}
+.result-big {
+  font-size: 48px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -1px;
+  position: relative;
+  z-index: 1;
+}
+.result-unit-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  position: relative;
+  z-index: 1;
+  margin-top: 2px;
+}
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: all 0.25s;
+}
+.progress-dot.done {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16,185,129,0.25);
+}
+.progress-dot.early {
+  background: #f59e0b;
+}
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(8px);
+  border-radius: 14px;
+  padding: 10px 16px;
+  min-width: 80px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  border: 1px solid rgba(255,255,255,0.8);
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 3px;
+}
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  font-variant-numeric: tabular-nums;
+}
+.stat-card.highlight .stat-value { color: #10b981; }
+.round-tags {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.round-tag {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(4px);
+  color: #64748b;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.6);
+}
+.round-tag.best {
+  background: #d1fae5;
+  color: #059669;
+  border-color: #a7f3d0;
+  font-weight: 700;
+}
+.round-tag.worst {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.grade-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 16px;
+}
+.btn {
+  padding: 9px 28px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(226,232,240,0.8);
+}
+.btn:hover {
+  background: rgba(255,255,255,0.9);
+  color: #475569;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.hint-text {
+  font-size: 11px;
+  color: #cbd5e1;
+  margin-top: 10px;
+}
+.saved-section {
+  margin-top: 28px;
+  border-top: 1px solid rgba(226,232,240,0.6);
+  padding-top: 18px;
+}
+.saved-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+}
+.saved-record {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(255,255,255,0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+.saved-record:hover { background: rgba(255,255,255,0.85); }
+.saved-record-left { text-align: left; }
+.saved-record-avg {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  font-variant-numeric: tabular-nums;
+}
+.saved-record-avg small {
+  font-size: 12px;
+  font-weight: 400;
+  color: #94a3b8;
+}
+.saved-record-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+.saved-record-right {
+  text-align: right;
+  font-size: 11px;
+  color: #a0aec0;
+  line-height: 1.3;
+}
+.saved-empty {
+  font-size: 12px;
+  color: #cbd5e1;
+  padding: 8px 0;
+}
+@media (max-width: 420px) {
+  .container { padding: 24px 16px 20px; }
+  .circle-wrap { width: 180px; height: 180px; }
+  .result-big { font-size: 40px; }
+  .stat-card { min-width: 68px; padding: 8px 12px; }
+  .stat-value { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>反应速度测试</h1>
+  <p class="subtitle">红色变绿色时尽快点击</p>
+
+  <div class="controls-row">
+    <label>轮数 <select id="roundSelect">
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="20">20</option>
+    </select></label>
+  </div>
+
+  <div class="circle-wrap">
+    <div id="testArea" class="circle-area idle">
+      <span class="circle-text" id="circleText">开始测试</span>
+    </div>
+  </div>
+
+  <div class="progress-dots" id="progressDots"></div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">本次</div>
+      <div class="stat-value" id="currentTime">--</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">最快</div>
+      <div class="stat-value" id="bestTime">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">平均</div>
+      <div class="stat-value" id="avgTime">--</div>
+    </div>
+  </div>
+
+  <div class="round-tags" id="roundTags"></div>
+  <div class="grade-text" id="gradeText"></div>
+
+  <button class="btn" id="resetBtn">重新测试</button>
+  <div class="hint-text">空格键也可触发</div>
+
+  <div class="saved-section" id="savedHistory"></div>
+</div>
+
+<script>
+const STORAGE_KEY = 'reaction_test_history';
+
+const testArea = document.getElementById('testArea');
+const circleText = document.getElementById('circleText');
+const currentTime = document.getElementById('currentTime');
+const bestTime = document.getElementById('bestTime');
+const avgTime = document.getElementById('avgTime');
+const roundTags = document.getElementById('roundTags');
+const progressDots = document.getElementById('progressDots');
+const gradeText = document.getElementById('gradeText');
+const resetBtn = document.getElementById('resetBtn');
+const roundSelect = document.getElementById('roundSelect');
+const savedHistory = document.getElementById('savedHistory');
+
+let TOTAL_ROUNDS = parseInt(roundSelect.value);
+let state = 'idle';
+let cancelWait = null;
+let readyAt = 0;
+let results = [];
+let currentRound = 0;
+
+function rafTimeout(callback, delay) {
+  const target = performance.now() + delay;
+  let running = true;
+  function tick() {
+    if (!running) return;
+    if (performance.now() >= target) { callback(); return; }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  return () => { running = false; };
+}
+
+function getGrade(ms) {
+  if (ms < 150) return '顶级反应';
+  if (ms < 190) return '非常优秀';
+  if (ms < 230) return '很快';
+  if (ms < 270) return '不错';
+  if (ms < 310) return '平均水平';
+  return '继续加油';
+}
+
+function setState(newState) {
+  state = newState;
+  testArea.className = 'circle-area ' + newState;
+  if (newState === 'idle') {
+    circleText.className = 'circle-text';
+    circleText.textContent = '开始测试';
+  } else if (newState === 'waiting') {
+    circleText.className = 'circle-text';
+    circleText.textContent = '等待...';
+  } else if (newState === 'ready') {
+    circleText.className = 'circle-text';
+    circleText.textContent = '点击!';
+  } else if (newState === 'clicked-early') {
+    circleText.className = 'circle-text';
+    circleText.textContent = '太早!';
+  }
+}
+
+function buildProgressDots() {
+  progressDots.innerHTML = '';
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'progress-dot';
+    progressDots.appendChild(dot);
+  }
+}
+
+function updateProgressDots() {
+  const dots = progressDots.querySelectorAll('.progress-dot');
+  dots.forEach((dot, i) => {
+    dot.className = i < results.length ? 'progress-dot done' : 'progress-dot';
+  });
+}
+
+function updateStats() {
+  if (results.length > 0) {
+    const last = results[results.length - 1];
+    const best = Math.min(...results);
+    const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
+    currentTime.textContent = last;
+    bestTime.textContent = best;
+    avgTime.textContent = avg;
+  } else {
+    currentTime.textContent = '--';
+    bestTime.textContent = '--';
+    avgTime.textContent = '--';
+  }
+}
+
+function renderRoundTags() {
+  roundTags.innerHTML = '';
+  if (results.length === 0) return;
+  const best = Math.min(...results);
+  const worst = Math.max(...results);
+  results.forEach((r, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'round-tag';
+    tag.textContent = '#' + (i + 1) + '  ' + r + 'ms';
+    if (r === best) tag.classList.add('best');
+    if (r === worst && results.length > 1) tag.classList.add('worst');
+    roundTags.appendChild(tag);
+  });
+  updateProgressDots();
+}
+
+function showResult() {
+  const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
+  circleText.className = 'result-big';
+  circleText.textContent = avg;
+  gradeText.textContent = getGrade(avg);
+}
+
+function loadSavedHistory() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveRecord(record) {
+  const records = loadSavedHistory();
+  records.unshift(record);
+  if (records.length > 10) records.splice(10);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  const pad = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function renderSavedHistory() {
+  const records = loadSavedHistory();
+  if (records.length === 0) {
+    savedHistory.innerHTML = '<div class="saved-title">历史记录</div><div class="saved-empty">暂无记录，完成测试后自动保存</div>';
+    return;
+  }
+  let html = '<div class="saved-title">历史记录</div>';
+  records.forEach((r) => {
+    html += '<div class="saved-record">' +
+      '<div class="saved-record-left">' +
+        '<div class="saved-record-avg">' + r.avg + '<small> ms</small></div>' +
+        '<div class="saved-record-meta">最快 ' + r.best + 'ms · ' + r.rounds + ' 轮</div>' +
+      '</div>' +
+      '<div class="saved-record-right">' + formatDate(r.date) + '</div>' +
+    '</div>';
+  });
+  savedHistory.innerHTML = html;
+}
+
+function finishTest() {
+  const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
+  const best = Math.min(...results);
+  saveRecord({ date: Date.now(), rounds: TOTAL_ROUNDS, avg, best });
+  const unit = document.createElement('div');
+  unit.className = 'result-unit-label';
+  unit.textContent = 'ms';
+  circleText.className = 'result-big';
+  circleText.textContent = avg;
+  circleText.after(unit);
+  gradeText.textContent = getGrade(avg) + ' · ' + TOTAL_ROUNDS + ' 轮';
+  updateStats();
+  renderRoundTags();
+  renderSavedHistory();
+  setState('finished');
+}
+
+function readyPhase() {
+  setState('ready');
+  readyAt = performance.now();
+}
+
+function waitingPhase() {
+  setState('waiting');
+  cancelWait = rafTimeout(readyPhase, 2000 + Math.random() * 3000);
+}
+
+function startNextRound() {
+  if (currentRound >= TOTAL_ROUNDS) { finishTest(); return; }
+  waitingPhase();
+}
+
+function begin() {
+  results = [];
+  currentRound = 0;
+  updateStats();
+  renderRoundTags();
+  buildProgressDots();
+  gradeText.textContent = '';
+  circleText.className = 'circle-text';
+  const existing = circleText.nextElementSibling;
+  if (existing && existing.className === 'result-unit-label') existing.remove();
+  startNextRound();
+}
+
+function handleTrigger(timeStamp) {
+  if (state === 'idle') { begin(); return; }
+  if (state === 'finished') return;
+
+  if (state === 'waiting') {
+    if (cancelWait) cancelWait();
+    setState('clicked-early');
+    const dots = progressDots.querySelectorAll('.progress-dot');
+    if (dots[currentRound]) dots[currentRound].classList.add('early');
+    cancelWait = rafTimeout(startNextRound, 1200);
+    return;
+  }
+
+  if (state === 'ready') {
+    const ms = Math.round(timeStamp - readyAt);
+    results.push(ms);
+    currentRound++;
+    updateStats();
+    renderRoundTags();
+    startNextRound();
+    return;
+  }
+}
+
+testArea.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  handleTrigger(e.timeStamp);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    handleTrigger(e.timeStamp);
+  }
+});
+
+resetBtn.addEventListener('click', () => {
+  if (cancelWait) cancelWait();
+  results = [];
+  currentRound = 0;
+  setState('idle');
+  updateStats();
+  renderRoundTags();
+  buildProgressDots();
+  gradeText.textContent = '';
+  circleText.className = 'circle-text';
+  const existing = circleText.nextElementSibling;
+  if (existing && existing.className === 'result-unit-label') existing.remove();
+});
+
+roundSelect.addEventListener('change', () => {
+  if (state === 'idle' || state === 'finished') {
+    TOTAL_ROUNDS = parseInt(roundSelect.value);
+    buildProgressDots();
+  }
+});
+
+buildProgressDots();
+renderSavedHistory();
+</script>
+</body>
+</html>
