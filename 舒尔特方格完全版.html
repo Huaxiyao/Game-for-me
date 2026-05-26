@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舒尔特方格 · 注意力训练</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root,[data-theme="light"] {
+  --bg: #f5f0eb; --surface: #ffffff; --text: #2c2416; --text-secondary: #6b5e4a;
+  --border: #d4c8b4; --cell-bg: #faf7f2; --cell-hover: #f0e8d8;
+  --cell-last: #d4c8a4; --cell-error: #ffcdd2; --cell-border: #b8a88a;
+  --accent: #8b6914; --accent-hover: #6b5010; --accent-light: #f5e6c8;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --theme-label: "浅米";
+  --theme-icon: "🌓";
+}
+[data-theme="dark"] {
+  --bg: #1a1a2e; --surface: #16213e; --text: #e8e4dd; --text-secondary: #9e9a91;
+  --border: #2a2a4a; --cell-bg: #1e2a3a; --cell-hover: #253548;
+  --cell-last: #3a3020; --cell-error: #4a1525; --cell-border: #3a3a5a;
+  --accent: #d4a853; --accent-hover: #e0b863; --accent-light: #3a3020;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --theme-label: "深色";
+  --theme-icon: "🌙";
+}
+[data-theme="forest"] {
+  --bg: #e8f0e3; --surface: #ffffff; --text: #2d3a1e; --text-secondary: #5a6b4a;
+  --border: #bcc8ae; --cell-bg: #f4f8f0; --cell-hover: #e4f0da;
+  --cell-last: #c4d8a8; --cell-error: #fdd8d8; --cell-border: #a0b890;
+  --accent: #4a7c2e; --accent-hover: #3a6420; --accent-light: #e0f0d0;
+  --shadow: 0 2px 12px rgba(0,0,0,0.05);
+  --theme-label: "森林";
+  --theme-icon: "🌿";
+}
+[data-theme="ocean"] {
+  --bg: #e8f0f8; --surface: #ffffff; --text: #1a2a3a; --text-secondary: #5a6a7a;
+  --border: #b0c4d8; --cell-bg: #f4f7fa; --cell-hover: #e4eef6;
+  --cell-last: #b0cce0; --cell-error: #f8d8d8; --cell-border: #98b0c8;
+  --accent: #2a6a9e; --accent-hover: #1e5280; --accent-light: #d8eaf4;
+  --shadow: 0 2px 12px rgba(0,0,0,0.05);
+  --theme-label: "海洋";
+  --theme-icon: "🌊";
+}
+[data-theme="sunset"] {
+  --bg: #faf0e8; --surface: #ffffff; --text: #3a2010; --text-secondary: #7a5a40;
+  --border: #d4b8a0; --cell-bg: #fdf6f0; --cell-hover: #f8e8d8;
+  --cell-last: #e0c4a0; --cell-error: #fcd8d0; --cell-border: #c89878;
+  --accent: #c06030; --accent-hover: #a04820; --accent-light: #fce8d8;
+  --shadow: 0 2px 12px rgba(0,0,0,0.05);
+  --theme-label: "暖橙";
+  --theme-icon: "🌅";
+}
+[data-theme="starry"] {
+  --bg: #080818; --surface: #10122a; --text: #e8e0c8; --text-secondary: #7878a0;
+  --border: #1e1e38; --cell-bg: #141430; --cell-hover: #1e1e48;
+  --cell-last: #2a2820; --cell-error: #3a1525; --cell-border: #282848;
+  --accent: #e0c050; --accent-hover: #f0d870; --accent-light: #282420;
+  --shadow: 0 2px 16px rgba(0,0,0,0.4);
+  --theme-label: "星辰";
+  --theme-icon: "✨";
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.4s, color 0.4s; padding: 20px;
+}
+.container {
+  background: var(--surface); border-radius: 20px; box-shadow: var(--shadow);
+  padding: 32px 28px; max-width: 620px; width: 100%;
+  transition: background 0.4s, box-shadow 0.4s;
+}
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+h1 { font-size: 24px; font-weight: 700; letter-spacing: 0.5px; }
+.header-actions { display: flex; gap: 6px; align-items: center; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.icon-btn:hover { background: var(--cell-hover); border-color: var(--accent); }
+.icon-btn.active { background: var(--accent-light); border-color: var(--accent); }
+.icon-btn.wide { width: auto; padding: 0 10px; font-size: 12px; font-weight: 600; gap: 3px; }
+
+.controls { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+select {
+  padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer;
+  transition: border-color 0.2s;
+}
+select:focus { outline: none; border-color: var(--accent); }
+.btn {
+  padding: 6px 14px; border-radius: 8px; border: none; font-size: 13px;
+  font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+}
+.btn-primary {
+  background: var(--accent); color: #fff; font-size: 16px; padding: 12px 32px; border-radius: 12px;
+}
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-secondary:hover { background: var(--cell-hover); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+.stats-bar {
+  display: flex; justify-content: space-around; align-items: center;
+  margin-bottom: 18px; padding: 12px 16px; background: var(--cell-bg);
+  border-radius: 12px; border: 1px solid var(--border); transition: background 0.4s;
+}
+.stat { text-align: center; }
+.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 2px; }
+.stat-value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+.stat-value.best { font-size: 14px; font-weight: 600; color: var(--accent); margin-top: 4px; }
+
+.kb-hint { text-align: center; font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; min-height: 16px; transition: color 0.2s; }
+
+.grid-outer { position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.grid { display: grid; gap: 7px; width: 100%; max-width: 420px; aspect-ratio: 1; }
+
+.countdown-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--surface); border-radius: 12px; pointer-events: none;
+  opacity: 0; transition: opacity 0.15s; z-index: 10;
+}
+.countdown-overlay.active { opacity: 1; }
+.countdown-number {
+  font-size: 88px; font-weight: 900; color: var(--accent);
+  animation: countPop 0.6s ease-out; transition: color 0.4s;
+}
+@keyframes countPop { 0%{transform:scale(0.3);opacity:0} 60%{transform:scale(1.15);opacity:1} 100%{transform:scale(1);opacity:1} }
+
+.cell {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--cell-bg); border: 2px solid var(--cell-border);
+  border-radius: 7px; font-weight: 700; cursor: pointer; user-select: none;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s, box-shadow 0.15s, color 0.2s;
+  position: relative;
+}
+.cell:hover:not(.idle-cell) { background: var(--cell-hover); border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+.cell.idle-cell { cursor: default; opacity: 0.8; }
+.cell.last { background: var(--cell-last); border-color: var(--accent); color: var(--text-secondary); }
+.cell.error { animation: shake 0.4s ease; background: var(--cell-error); border-color: #e57373; }
+.cell.pop { animation: pop 0.25s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
+
+.message { text-align: center; font-size: 14px; font-weight: 600; min-height: 20px; margin-bottom: 4px; color: var(--accent); transition: color 0.2s; }
+.message.error-msg { color: #c62828; }
+.start-area { text-align: center; margin: 8px 0 2px; }
+
+/* toast */
+.ach-toast {
+  position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px);
+  background: var(--surface); border: 2px solid var(--accent); border-radius: 14px;
+  padding: 14px 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 100;
+  display: flex; align-items: center; gap: 14px;
+  transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1); max-width: 380px;
+}
+.ach-toast.show { transform: translateX(-50%) translateY(0); }
+.ach-icon { font-size: 36px; }
+.ach-info { display: flex; flex-direction: column; }
+.ach-title { font-weight: 700; font-size: 15px; }
+.ach-desc { font-size: 12px; color: var(--text-secondary); }
+
+.panel-toggle { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.panel {
+  overflow: hidden; max-height: 0; transition: max-height 0.35s ease, margin 0.35s ease; margin-bottom: 0;
+}
+.panel.open { max-height: 520px; margin-bottom: 16px; }
+.panel-inner { background: var(--cell-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; transition: background 0.4s; }
+.chart-wrap { position: relative; height: 180px; }
+.chart-wrap canvas { width: 100% !important; height: 100% !important; }
+.ach-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.ach-badge {
+  display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border-radius: 9px; border: 1px solid var(--border); background: var(--surface);
+  font-size: 12px; transition: all 0.2s;
+}
+.ach-badge.locked { opacity: 0.35; filter: grayscale(1); }
+.ach-badge .ach-badge-icon { font-size: 20px; }
+.ach-badge-name { font-weight: 600; }
+.ach-badge-desc { font-size: 10px; color: var(--text-secondary); }
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0 14px; transition: border-color 0.4s; }
+
+/* theme switcher dropdown */
+.theme-menu {
+  position: absolute; top: 100%; right: 0; margin-top: 4px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  padding: 4px; z-index: 50; display: none; flex-direction: column; gap: 2px;
+  min-width: 100px;
+}
+.theme-menu.show { display: flex; }
+.theme-opt {
+  padding: 6px 10px; border-radius: 7px; font-size: 12px; cursor: pointer;
+  border: none; background: transparent; color: var(--text); text-align: left;
+  transition: background 0.15s; white-space: nowrap;
+}
+.theme-opt:hover { background: var(--cell-hover); }
+.theme-opt.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+
+@media (max-width: 480px) {
+  .container { padding: 16px 10px; }
+  h1 { font-size: 19px; }
+  .stat-value { font-size: 22px; }
+  .stat-value.best { font-size: 12px; }
+  .grid { gap: 4px; max-width: 100%; }
+  .countdown-number { font-size: 56px; }
+  .controls { gap: 4px; }
+  select { font-size: 12px; padding: 6px 8px; }
+  .btn-primary { font-size: 15px; padding: 10px 24px; }
+  .icon-btn.wide { font-size: 11px; padding: 0 8px; }
+  .kb-hint { font-size: 10px; }
+}
+@media (max-width: 380px) {
+  .container { padding: 12px 8px; }
+  h1 { font-size: 17px; }
+  .stats-bar { padding: 10px 12px; }
+  .stat-value { font-size: 20px; }
+  .stat-value.best { font-size: 11px; }
+  .grid { gap: 3px; }
+  .cell { border-width: 1.5px; border-radius: 5px; }
+  .countdown-number { font-size: 48px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 7px; font-size: 14px; }
+  .icon-btn.wide { width: auto; font-size: 10px; padding: 0 6px; }
+  .btn-primary { font-size: 14px; padding: 10px 20px; border-radius: 10px; }
+  select { font-size: 11px; padding: 5px 6px; }
+  .kb-hint { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>舒尔特方格</h1>
+    <div class="header-actions" style="position:relative">
+      <button class="icon-btn" id="achBtn" title="成就">🏆</button>
+      <button class="icon-btn" id="themeBtn" title="切换主题">🌓</button>
+      <div class="theme-menu" id="themeMenu"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <select id="sizeSelect">
+      <option value="3">3×3</option><option value="4">4×4</option>
+      <option value="5" selected>5×5</option><option value="6">6×6</option><option value="7">7×7</option>
+    </select>
+    <select id="modeSelect">
+      <option value="normal">正序</option><option value="reverse">倒序</option><option value="odd-even">奇偶分离</option>
+    </select>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-label">当前用时</div>
+      <div class="stat-value" id="currentTime">0.00s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">最佳成绩</div>
+      <div class="stat-value" id="bestTime">--</div>
+      <div class="stat-value best" id="bestDetail"></div>
+    </div>
+  </div>
+
+  <div class="kb-hint" id="kbHint">倒计时期间数字不可见，开始后凭记忆找</div>
+  <div class="message" id="message"></div>
+
+  <div class="grid-outer">
+    <div class="grid" id="grid"></div>
+    <div class="countdown-overlay" id="countdownOverlay">
+      <span class="countdown-number" id="countdownNum"></span>
+    </div>
+  </div>
+
+  <div class="start-area">
+    <button class="btn btn-primary" id="startBtn">开始挑战</button>
+  </div>
+
+  <hr class="section-divider">
+
+  <div class="panel-toggle">
+    <button class="icon-btn wide" id="chartToggle">📈 趋势图</button>
+    <button class="icon-btn wide" id="achToggle">🏆 成就</button>
+    <button class="icon-btn wide" id="exportBtn">📥 导出CSV</button>
+    <button class="btn btn-secondary btn-sm" id="clearHistory">清空记录</button>
+  </div>
+
+  <div class="panel" id="chartPanel">
+    <div class="panel-inner"><div class="chart-wrap"><canvas id="trendChart"></canvas></div></div>
+  </div>
+  <div class="panel" id="achPanel">
+    <div class="panel-inner"><div class="ach-grid" id="achGrid"></div></div>
+  </div>
+</div>
+
+<div class="ach-toast" id="achToast">
+  <span class="ach-icon" id="achToastIcon">🏆</span>
+  <div class="ach-info">
+    <span class="ach-title" id="achToastTitle"></span>
+    <span class="ach-desc" id="achToastDesc"></span>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_HISTORY = "schulte5_hist";
+  const STORAGE_ACHS = "schulte5_achs";
+  const STORAGE_THEME = "schulte5_theme";
+
+  const THEMES = ["light","dark","forest","ocean","sunset","starry"];
+  const THEME_ICONS = {light:"🌓",dark:"🌙",forest:"🌿",ocean:"🌊",sunset:"🌅",starry:"✨"};
+
+  // ── Sound ──
+  let audioCtx=null;
+  function getCtx(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return audioCtx; }
+  function playTone(freq,dur,type,vol){ const ctx=getCtx(); if(!ctx)return; try { const o=ctx.createOscillator(),g=ctx.createGain(); o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(vol,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur); } catch(e){} }
+  function sfxCorrect(){ playTone(880,0.1,"sine",0.25); }
+  function sfxError(){ playTone(150,0.25,"sawtooth",0.2); }
+  function sfxFinish(){ const ctx=getCtx(); if(!ctx)return; try { [523,659,784,1047].forEach((f,i)=>{ const o=ctx.createOscillator(),g=ctx.createGain(); o.type="sine"; o.frequency.value=f; const t=ctx.currentTime+i*0.12; g.gain.setValueAtTime(0.25,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3); o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.3); }); } catch(e){} }
+
+  // ── Achievements ──
+  const ACHIEVEMENTS = [
+    { id:"first", icon:"🎯", name:"初次尝试", desc:"完成任意一次方格", check:s=>s.totalCompletions>=1 },
+    { id:"perfect", icon:"💎", name:"零失误", desc:"一次挑战中无任何误触", check:s=>s.lastPerfect },
+    { id:"speed25", icon:"⚡", name:"风驰电掣", desc:"5×5 正序或倒序跑进 25 秒", check:s=>s.best5x5Normal&&s.best5x5Normal<=25000 },
+    { id:"speed20", icon:"🔥", name:"势如破竹", desc:"5×5 正序或倒序跑进 20 秒", check:s=>s.best5x5Normal&&s.best5x5Normal<=20000 },
+    { id:"speed15", icon:"💫", name:"闪电侠", desc:"5×5 正序或倒序跑进 15 秒", check:s=>s.best5x5Normal&&s.best5x5Normal<=15000 },
+    { id:"ten", icon:"🌟", name:"热身完毕", desc:"累计完成 10 次挑战", check:s=>s.totalCompletions>=10 },
+    { id:"fifty", icon:"👑", name:"训练有素", desc:"累计完成 50 次挑战", check:s=>s.totalCompletions>=50 },
+    { id:"hundred", icon:"🏅", name:"坚持不懈", desc:"累计完成 100 次挑战", check:s=>s.totalCompletions>=100 },
+    { id:"allSizes", icon:"🧩", name:"全能选手", desc:"完成过全部 5 种规格", check:s=>s.sizesDone&&s.sizesDone.size>=5 },
+    { id:"reverse", icon:"🔄", name:"倒背如流", desc:"倒序模式下完成一次 5×5", check:s=>s.didReverse5 },
+    { id:"oddEven", icon:"🔀", name:"奇偶大师", desc:"奇偶模式下完成一次 5×5", check:s=>s.didOddEven5 },
+  ];
+  function loadAchs(){ try{ return JSON.parse(localStorage.getItem(STORAGE_ACHS))||[]; }catch{ return[]; } }
+  function saveAch(id){ const a=loadAchs(); if(!a.includes(id)){ a.push(id); localStorage.setItem(STORAGE_ACHS,JSON.stringify(a)); } }
+
+  // ── State ──
+  let state = { gridSize:5, mode:"normal", phase:"idle", cells:[], nextIdx:0, targetSeq:[], timerI:null, startT:null, elapsed:0, mistakes:0, lastDoneIdx:-1 };
+  let trendChart = null;
+
+  const $ = id=>document.getElementById(id);
+  const gridEl=$("grid"), timeEl=$("currentTime"), bestEl=$("bestTime"), bestDetail=$("bestDetail"),
+    msgEl=$("message"), kbHint=$("kbHint"), sizeSel=$("sizeSelect"), modeSel=$("modeSelect"),
+    startBtn=$("startBtn"), themeBtn=$("themeBtn"), toast=$("achToast"),
+    toastIcon=$("achToastIcon"), toastTitle=$("achToastTitle"), toastDesc=$("achToastDesc"),
+    chartToggle=$("chartToggle"), achToggle=$("achToggle"), chartPanel=$("chartPanel"),
+    achPanel=$("achPanel"), achGrid=$("achGrid"), clearBtn=$("clearHistory"), exportBtn=$("exportBtn"),
+    overlay=$("countdownOverlay"), cdNum=$("countdownNum"), themeMenu=$("themeMenu");
+
+  function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]; } return r; }
+  function fmt(ms){ return (ms/1000).toFixed(2)+"s"; }
+  function loadHistory(){ try{ return JSON.parse(localStorage.getItem(STORAGE_HISTORY))||[]; }catch{ return[]; } }
+  function saveHistory(e){ const h=loadHistory(); h.unshift(e); if(h.length>300)h.length=300; localStorage.setItem(STORAGE_HISTORY,JSON.stringify(h)); }
+  function modeLabel(m){ if(m==="reverse")return"倒序"; if(m==="odd-even")return"奇偶"; return"正序"; }
+  function buildTargetSeq(size,mode){ const n=size*size; if(mode==="reverse"){ const a=[]; for(let i=n;i>=1;i--)a.push(i); return a; } if(mode==="odd-even"){ const a=[]; for(let i=1;i<=n;i+=2)a.push(i); for(let i=2;i<=n;i+=2)a.push(i); return a; } const a=[]; for(let i=1;i<=n;i++)a.push(i); return a; }
+  function bestFor(size,mode){ const h=loadHistory(); const times=h.filter(x=>x.size===size&&x.mode===mode).map(x=>x.time); return times.length?Math.min(...times):null; }
+  function getSummary(){ const h=loadHistory(); const sz=new Set(); let total=h.length,didR5=false,didO5=false,b5n=null; h.forEach(x=>{ sz.add(x.size); if(x.size===5&&x.mode==="reverse")didR5=true; if(x.size===5&&x.mode==="odd-even")didO5=true; if(x.size===5&&(x.mode==="normal"||x.mode==="reverse")){ if(b5n===null||x.time<b5n)b5n=x.time; } }); return {totalCompletions:total,sizesDone:sz,didReverse5:didR5,didOddEven5:didO5,best5x5Normal:b5n,lastPerfect:false}; }
+  function checkAchs(lastPerfect){ const s=getSummary(); s.lastPerfect=lastPerfect; const unlocked=loadAchs(),newly=[]; ACHIEVEMENTS.forEach(a=>{ if(!unlocked.includes(a.id)&&a.check(s)){ saveAch(a.id); newly.push(a); } }); return newly; }
+  function showToast(ach){ toastIcon.textContent=ach.icon; toastTitle.textContent=ach.name; toastDesc.textContent=ach.desc; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"),3500); }
+  function renderBest(){ const b=bestFor(state.gridSize,state.mode); bestEl.textContent=b!==null?fmt(b):"--"; bestDetail.textContent=state.gridSize+"×"+state.gridSize+" · "+modeLabel(state.mode); }
+  function renderAchs(){ const unlocked=loadAchs(); achGrid.innerHTML=ACHIEVEMENTS.map(a=>{ const locked=!unlocked.includes(a.id); return `<div class="ach-badge${locked?' locked':''}"><span class="ach-badge-icon">${locked?'🔒':a.icon}</span><div><div class="ach-badge-name">${a.name}</div><div class="ach-badge-desc">${a.desc}</div></div></div>`; }).join(""); }
+  function renderChart(){ try { if(!trendChart)return; const h=loadHistory(),pts=[]; for(let i=h.length-1;i>=0;i--){ if(h[i].size===state.gridSize&&h[i].mode===state.mode)pts.push({x:pts.length+1,y:h[i].time/1000}); if(pts.length>=50)break; } pts.reverse(); if(pts.length===0)pts.push({x:0,y:null}); trendChart.data.labels=pts.map(p=>p.x===0?"":("#"+p.x)); trendChart.data.datasets[0].data=pts.map(p=>p.y); trendChart.data.datasets[0].label=`${state.gridSize}×${state.gridSize} · ${modeLabel(state.mode)}`; trendChart.update(); } catch(e){} }
+
+  function stopTimer(){ if(state.timerI){ clearInterval(state.timerI); state.timerI=null; } }
+  function updateTimer(){ state.elapsed=Date.now()-state.startT; timeEl.textContent=fmt(state.elapsed); }
+  function startTimer(){ state.startT=Date.now(); state.timerI=setInterval(updateTimer,50); }
+  function setPhase(p){ state.phase=p; }
+
+  function clearLastDone(){ if(state.lastDoneIdx>=0){ gridEl.children[state.lastDoneIdx].classList.remove("last"); state.lastDoneIdx=-1; } }
+
+  function startCountdown(){
+    setPhase("countdown"); overlay.classList.add("active");
+    startBtn.disabled=true; msgEl.textContent=""; msgEl.classList.remove("error-msg"); kbHint.textContent="数字即将出现…";
+    const seq=[{t:"3",d:700},{t:"2",d:700},{t:"1",d:700},{t:"GO!",d:400}]; let i=0;
+    function next(){ if(i>=seq.length){ overlay.classList.remove("active"); cdNum.textContent=""; startTimer(); setPhase("playing"); kbHint.textContent="按记忆找数字，只标记上一个点击的位置"; return; } const s=seq[i]; cdNum.textContent=s.t; cdNum.style.animation="none"; void cdNum.offsetWidth; cdNum.style.animation="countPop 0.6s ease-out"; i++; setTimeout(next,s.d); }
+    next();
+  }
+
+  function finishGame(){
+    stopTimer(); setPhase("finished"); updateTimer(); clearLastDone();
+    const ft=state.elapsed, now=new Date();
+    const ds=now.toLocaleDateString("zh-CN")+" "+now.toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});
+    const perfect=state.mistakes===0;
+    saveHistory({size:state.gridSize,mode:state.mode,time:ft,date:ds,mistakes:state.mistakes});
+    const newly=checkAchs(perfect); newly.forEach(a=>showToast(a));
+    const b=bestFor(state.gridSize,state.mode),isNew=b===ft;
+    const parts=[]; parts.push(isNew?"🎉 新纪录！":"✅ 完成！"); parts.push("用时 "+fmt(ft)); if(b&&!isNew)parts.push("最佳 "+fmt(b)); if(perfect)parts.push("· 零失误 💎");
+    msgEl.textContent=parts.join(" · "); msgEl.classList.remove("error-msg");
+    renderBest(); renderAchs(); renderChart();
+    startBtn.textContent="再来一次"; startBtn.disabled=false; kbHint.textContent="";
+    sfxFinish();
+  }
+
+  function cellClick(idx){
+    if(state.phase!=="playing") return;
+    const cell=state.cells[idx], target=state.targetSeq[state.nextIdx];
+    if(cell.value===target){ clearLastDone(); const el=gridEl.children[idx]; el.classList.add("last","pop"); state.lastDoneIdx=idx; state.nextIdx++; if(state.nextIdx>=state.targetSeq.length){ finishGame(); return; } msgEl.textContent=""; msgEl.classList.remove("error-msg"); sfxCorrect(); }
+    else { state.mistakes++; const el=gridEl.children[idx]; el.classList.add("error"); el.addEventListener("animationend",()=>el.classList.remove("error"),{once:true}); msgEl.textContent="请找 "+target+"，误触了 "+cell.value; msgEl.classList.add("error-msg"); sfxError(); }
+  }
+
+  function cellFontSize(size){ const map={3:28,4:24,5:22,6:18,7:16}; return (map[size]||20)+"px"; }
+
+  function buildGrid(){
+    state.gridSize=parseInt(sizeSel.value)||5; state.mode=modeSel.value||"normal";
+    stopTimer(); setPhase("idle"); state.elapsed=0; state.nextIdx=0; state.mistakes=0; state.startT=null; state.lastDoneIdx=-1;
+    state.targetSeq=buildTargetSeq(state.gridSize,state.mode);
+    const n=state.gridSize*state.gridSize, nums=Array.from({length:n},(_,i)=>i+1), shuf=shuffle(nums);
+    state.cells=shuf.map(v=>({value:v}));
+    const fs=cellFontSize(state.gridSize);
+    gridEl.style.gridTemplateColumns=`repeat(${state.gridSize},1fr)`; gridEl.innerHTML="";
+    shuf.forEach((v,i)=>{ const d=document.createElement("div"); d.className="cell idle-cell"; d.textContent=v; d.style.fontSize=fs; d.onclick=()=>cellClick(i); gridEl.appendChild(d); });
+    overlay.classList.remove("active"); timeEl.textContent="0.00s"; msgEl.textContent=""; msgEl.classList.remove("error-msg");
+    kbHint.textContent="倒计时期间数字不可见，开始后凭记忆找";
+    startBtn.textContent="开始挑战"; startBtn.disabled=false; renderBest();
+    try { renderChart(); } catch(e) {}
+  }
+
+  function reshuffleGrid(){
+    stopTimer(); setPhase("idle"); state.elapsed=0; state.nextIdx=0; state.mistakes=0; state.startT=null; state.lastDoneIdx=-1;
+    state.targetSeq=buildTargetSeq(state.gridSize,state.mode);
+    const n=state.gridSize*state.gridSize, nums=Array.from({length:n},(_,i)=>i+1), shuf=shuffle(nums);
+    state.cells=shuf.map(v=>({value:v}));
+    const fs=cellFontSize(state.gridSize);
+    Array.from(gridEl.children).forEach((el,i)=>{ el.className="cell idle-cell"; el.textContent=shuf[i]; el.style.fontSize=fs; el.onclick=()=>cellClick(i); });
+    overlay.classList.remove("active"); timeEl.textContent="0.00s"; msgEl.textContent=""; msgEl.classList.remove("error-msg");
+    kbHint.textContent="倒计时期间数字不可见，开始后凭记忆找";
+    startBtn.textContent="开始挑战"; startBtn.disabled=false; renderBest();
+  }
+
+  function activateCells(){ Array.from(gridEl.children).forEach(el=>el.classList.remove("idle-cell")); }
+
+  function exportCSV(){ const h=loadHistory(); if(h.length===0){ alert("暂无成绩记录"); return; } const csv="﻿日期,规格,模式,用时(秒),误触次数\n"+h.map(e=>`${e.date},${e.size}×${e.size},${modeLabel(e.mode)},${(e.time/1000).toFixed(2)},${e.mistakes||0}`).join("\n"); const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="schulte-scores.csv"; a.click(); URL.revokeObjectURL(url); }
+
+  // ── Theme ──
+  function setTheme(name){
+    document.documentElement.setAttribute("data-theme",name);
+    localStorage.setItem(STORAGE_THEME,name);
+    themeBtn.textContent=THEME_ICONS[name]||"🎨";
+    // update chart colors
+    try { if(trendChart){ const isDark=name==="dark"; const c=getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(); const c2=getComputedStyle(document.documentElement).getPropertyValue("--text-secondary").trim(); trendChart.data.datasets[0].borderColor=c; trendChart.data.datasets[0].pointBackgroundColor=c; trendChart.options.scales.x.ticks.color=c2; trendChart.options.scales.y.ticks.color=c2; trendChart.options.scales.y.title.color=c2; trendChart.update(); } } catch(e) {}
+    renderThemeMenu();
+  }
+
+  function renderThemeMenu(){
+    const cur=document.documentElement.getAttribute("data-theme")||"light";
+    themeMenu.innerHTML=THEMES.map(t=>{
+      const label=THEME_ICONS[t]+" "+{light:"浅米",dark:"深色",forest:"森林",ocean:"海洋",sunset:"暖橙",starry:"星辰"}[t];
+      return `<button class="theme-opt${t===cur?' active':''}" data-theme="${t}">${label}</button>`;
+    }).join("");
+    // wire clicks
+    themeMenu.querySelectorAll(".theme-opt").forEach(btn=>{ btn.addEventListener("click",(e)=>{ e.stopPropagation(); setTheme(btn.dataset.theme); themeMenu.classList.remove("show"); }); });
+  }
+
+  // ── Panel accordion ──
+  const ALL_PANELS = [[chartPanel,chartToggle],[achPanel,achToggle]];
+  function openPanel(panel,toggleBtn){
+    const wasOpen=panel.classList.contains("open");
+    // close all
+    ALL_PANELS.forEach(([p,t])=>{ p.classList.remove("open"); t.classList.remove("active"); });
+    // open clicked one (unless it was already open → toggle off)
+    if(!wasOpen){ panel.classList.add("open"); toggleBtn.classList.add("active"); if(panel===chartPanel&&!trendChart)initChart(); }
+  }
+
+  // ── Events ──
+  startBtn.addEventListener("click",()=>{ if(state.phase==="playing"||state.phase==="countdown")return; reshuffleGrid(); activateCells(); startCountdown(); });
+  sizeSel.addEventListener("change",()=>{ state.gridSize=parseInt(sizeSel.value)||5; buildGrid(); });
+  modeSel.addEventListener("change",()=>{ state.mode=modeSel.value||"normal"; buildGrid(); });
+
+  themeBtn.addEventListener("click",(e)=>{ e.stopPropagation(); themeMenu.classList.toggle("show"); });
+  document.addEventListener("click",()=>themeMenu.classList.remove("show"));
+
+  clearBtn.addEventListener("click",()=>{ if(confirm("确定清空所有成绩记录？")){ localStorage.removeItem(STORAGE_HISTORY); renderBest(); renderChart(); renderAchs(); } });
+  exportBtn.addEventListener("click",exportCSV);
+
+  chartToggle.addEventListener("click",()=>openPanel(chartPanel,chartToggle));
+  achToggle.addEventListener("click",()=>openPanel(achPanel,achToggle));
+  if($("achBtn"))$("achBtn").addEventListener("click",()=>openPanel(achPanel,achToggle));
+
+  document.addEventListener("keydown",e=>{
+    if(e.key==="r"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); reshuffleGrid(); activateCells(); startCountdown(); return; }
+    if(e.key==="t"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); themeBtn.click(); return; }
+    if(state.phase!=="playing")return;
+    const k=parseInt(e.key); if(isNaN(k)||k<1)return;
+    const idx=state.cells.findIndex(c=>c.value===k); if(idx<0)return;
+    cellClick(idx);
+  });
+
+  function initChart(){ try { const canvas=$("trendChart"); if(!canvas)return; const cs=getComputedStyle(document.documentElement); const c=cs.getPropertyValue("--accent").trim(); const c2=cs.getPropertyValue("--text-secondary").trim(); trendChart=new Chart(canvas,{ type:"line",data:{labels:[],datasets:[{label:"",data:[],borderColor:c,backgroundColor:c+"22",borderWidth:2,pointRadius:3,pointBackgroundColor:c,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{fontSize:10,color:c2},grid:{display:false}},y:{title:{display:true,text:"秒",color:c2},ticks:{fontSize:10,color:c2,callback:v=>v.toFixed(1)+"s"},grid:{color:c2+"11"}}},interaction:{intersect:false,mode:"index"}} }); renderChart(); } catch(e){ trendChart=null; } }
+
+  // ── Startup ──
+  const savedTheme=localStorage.getItem(STORAGE_THEME)||"light";
+  document.documentElement.setAttribute("data-theme",savedTheme);
+  themeBtn.textContent=THEME_ICONS[savedTheme]||"🎨";
+  buildGrid(); renderAchs(); renderThemeMenu();
+})();
+</script>
+</body>
+</html>
