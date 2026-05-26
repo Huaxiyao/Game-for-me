@@ -19,7 +19,7 @@ body {
   text-align: center;
   max-width: 420px;
   width: 100%;
-  padding: 36px 24px 28px;
+  padding: 32px 24px 28px;
 }
 h1 {
   font-size: 22px;
@@ -31,19 +31,47 @@ h1 {
 .subtitle {
   font-size: 13px;
   color: #94a3b8;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
+.controls-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.controls-row label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.controls-row select {
+  padding: 4px 8px 4px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #fff;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.controls-row select:focus { border-color: #818cf8; }
 .click-area {
   width: 240px;
   height: 240px;
   border-radius: 50%;
-  margin: 0 auto 18px;
+  margin: 0 auto 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.2s;
+  transition: transform 0.15s, box-shadow 0.3s;
   position: relative;
   overflow: hidden;
 }
@@ -55,11 +83,16 @@ h1 {
 .click-area.running {
   background: linear-gradient(135deg, #f87171, #ef4444);
   box-shadow: 0 12px 40px rgba(239,68,68,0.30);
-  animation: none;
 }
 .click-area.ended {
   background: linear-gradient(135deg, #34d399, #10b981);
   box-shadow: 0 12px 48px rgba(16,185,129,0.35);
+  animation: result-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes result-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
 .click-area::after {
   content: '';
@@ -95,6 +128,11 @@ h1 {
   letter-spacing: -1px;
   position: relative;
   z-index: 1;
+  animation: cps-count 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes cps-count {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 .result-label {
   font-size: 14px;
@@ -130,20 +168,20 @@ h1 {
   stroke: rgba(255,255,255,0.45);
   stroke-width: 3;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.1s linear;
+  transition: stroke-dashoffset 0.08s linear;
 }
 .stats-row {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .stat-card {
   background: rgba(255,255,255,0.75);
   backdrop-filter: blur(8px);
   border-radius: 14px;
-  padding: 10px 16px;
-  min-width: 80px;
+  padding: 10px 14px;
+  min-width: 76px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.04);
   border: 1px solid rgba(255,255,255,0.8);
 }
@@ -166,7 +204,20 @@ h1 {
   font-size: 14px;
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  min-height: 20px;
+}
+.best-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(245,158,11,0.12);
+  color: #d97706;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin-bottom: 14px;
 }
 .btn {
   padding: 9px 28px;
@@ -192,9 +243,9 @@ h1 {
   margin-top: 10px;
 }
 .saved-section {
-  margin-top: 28px;
+  margin-top: 26px;
   border-top: 1px solid rgba(226,232,240,0.6);
-  padding-top: 18px;
+  padding-top: 16px;
 }
 .saved-title {
   font-size: 11px;
@@ -208,7 +259,7 @@ h1 {
   background: rgba(255,255,255,0.6);
   backdrop-filter: blur(4px);
   border-radius: 12px;
-  padding: 11px 14px;
+  padding: 10px 14px;
   margin-bottom: 6px;
   border: 1px solid rgba(255,255,255,0.7);
   display: flex;
@@ -244,7 +295,7 @@ h1 {
   padding: 8px 0;
 }
 @media (max-width: 420px) {
-  .container { padding: 24px 16px 20px; }
+  .container { padding: 20px 16px 20px; }
   .click-area { width: 200px; height: 200px; }
   .result-cps { font-size: 42px; }
   .click-count { font-size: 38px; }
@@ -254,10 +305,19 @@ h1 {
 <body>
 <div class="container">
   <h1>手速测试</h1>
-  <p class="subtitle">10 秒内尽可能多地点击</p>
+  <p class="subtitle">倒计时内尽可能多地点击</p>
+
+  <div class="controls-row">
+    <label>时长 <select id="durationSelect">
+      <option value="5">5 秒</option>
+      <option value="10" selected>10 秒</option>
+      <option value="30">30 秒</option>
+      <option value="60">60 秒</option>
+    </select></label>
+  </div>
 
   <div id="clickArea" class="click-area idle">
-    <div class="timer-ring" id="timerRing">
+    <div class="timer-ring">
       <svg viewBox="0 0 100 100">
         <circle class="bg" cx="50" cy="50" r="46"/>
         <circle class="progress" id="progressCircle" cx="50" cy="50" r="46"
@@ -273,8 +333,8 @@ h1 {
       <div class="stat-value" id="totalClicks">0</div>
     </div>
     <div class="stat-card highlight">
-      <div class="stat-label">CPS</div>
-      <div class="stat-value" id="cpsDisplay">0.00</div>
+      <div class="stat-label">实时 CPS</div>
+      <div class="stat-value" id="liveCps">0.00</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">剩余</div>
@@ -282,6 +342,7 @@ h1 {
     </div>
   </div>
 
+  <div id="bestBadge" class="best-badge" style="display:none"></div>
   <div class="grade-text" id="gradeText"></div>
 
   <button class="btn" id="resetBtn">重新测试</button>
@@ -292,27 +353,28 @@ h1 {
 
 <script>
 const STORAGE_KEY = 'cps_test_history';
-const DURATION = 10;
+const BEST_KEY = 'cps_test_best';
 
 const clickArea = document.getElementById('clickArea');
 const clickText = document.getElementById('clickText');
 const totalClicks = document.getElementById('totalClicks');
-const cpsDisplay = document.getElementById('cpsDisplay');
+const liveCps = document.getElementById('liveCps');
 const timeLeft = document.getElementById('timeLeft');
 const gradeText = document.getElementById('gradeText');
 const resetBtn = document.getElementById('resetBtn');
+const durationSelect = document.getElementById('durationSelect');
 const progressCircle = document.getElementById('progressCircle');
 const savedHistory = document.getElementById('savedHistory');
+const bestBadge = document.getElementById('bestBadge');
 
 const circumference = 2 * Math.PI * 46;
 
-let state = 'idle'; // idle | running | ended
+let duration = parseInt(durationSelect.value);
+let state = 'idle';
 let clicks = 0;
 let startTime = 0;
-let remaining = DURATION;
-let timerInterval = null;
+let remaining = duration;
 let frameId = null;
-let lastFrameTime = 0;
 
 function getGrade(cps) {
   if (cps >= 12) return '职业级!';
@@ -321,6 +383,29 @@ function getGrade(cps) {
   if (cps >= 6) return '不错';
   if (cps >= 4) return '平均水平';
   return '继续加油';
+}
+
+function loadBest() {
+  const v = localStorage.getItem(BEST_KEY);
+  return v ? parseFloat(v) : 0;
+}
+
+function saveBest(cps) {
+  const current = loadBest();
+  if (cps > current) {
+    localStorage.setItem(BEST_KEY, String(cps));
+    renderBestBadge(cps);
+  }
+}
+
+function renderBestBadge(cps) {
+  const best = cps || loadBest();
+  if (best > 0) {
+    bestBadge.style.display = 'inline-flex';
+    bestBadge.textContent = '🏆 历史最佳 ' + best.toFixed(1) + ' CPS';
+  } else {
+    bestBadge.style.display = 'none';
+  }
 }
 
 function setState(newState) {
@@ -363,7 +448,7 @@ function renderSaved() {
     html += '<div class="saved-record">' +
       '<div class="saved-record-left">' +
         '<div class="saved-record-cps">' + r.cps.toFixed(1) + '<small> CPS</small></div>' +
-        '<div class="saved-record-meta">' + r.clicks + ' 次点击</div>' +
+        '<div class="saved-record-meta">' + r.clicks + ' 次 · ' + r.duration + 's</div>' +
       '</div>' +
       '<div class="saved-record-right">' + formatDate(r.date) + '</div>' +
     '</div>';
@@ -371,55 +456,58 @@ function renderSaved() {
   savedHistory.innerHTML = html;
 }
 
-function updateTimer() {
+function tick() {
+  if (state !== 'running') return;
   const elapsed = (performance.now() - startTime) / 1000;
-  remaining = Math.max(0, DURATION - elapsed);
+  remaining = Math.max(0, duration - elapsed);
   timeLeft.textContent = remaining.toFixed(1);
 
-  const progress = remaining / DURATION;
+  const progress = remaining / duration;
   progressCircle.style.strokeDashoffset = circumference * (1 - progress);
+
+  if (clicks > 0 && elapsed > 0) {
+    liveCps.textContent = (clicks / elapsed).toFixed(2);
+  }
 
   if (remaining <= 0) {
     endTest();
+    return;
   }
-}
-
-function animate() {
-  if (state !== 'running') return;
-  updateTimer();
-  frameId = requestAnimationFrame(animate);
+  frameId = requestAnimationFrame(tick);
 }
 
 function endTest() {
   state = 'ended';
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   if (frameId) { cancelAnimationFrame(frameId); frameId = null; }
   remaining = 0;
   timeLeft.textContent = '0.0';
-  progressCircle.style.strokeDashoffset = circumference;
+  progressCircle.style.strokeDashoffset = '0';
 
-  const cps = clicks / DURATION;
-  cpsDisplay.textContent = cps.toFixed(2);
+  const elapsed = (performance.now() - startTime) / 1000;
+  const cps = elapsed > 0 ? clicks / elapsed : 0;
+  liveCps.textContent = cps.toFixed(2);
+
   clickArea.className = 'click-area ended';
   clickText.className = 'result-cps';
   clickText.textContent = cps.toFixed(1);
   gradeText.textContent = getGrade(cps) + ' · ' + clicks + ' 次点击';
 
-  saveRecord({ date: Date.now(), clicks, cps: Math.round(cps * 100) / 100 });
+  saveRecord({ date: Date.now(), clicks, duration, cps: Math.round(cps * 100) / 100 });
+  saveBest(cps);
   renderSaved();
 }
 
 function begin() {
   clicks = 0;
-  remaining = DURATION;
+  remaining = duration;
   totalClicks.textContent = '0';
-  cpsDisplay.textContent = '0.00';
-  timeLeft.textContent = DURATION + '.0';
+  liveCps.textContent = '0.00';
+  timeLeft.textContent = duration + '.0';
   gradeText.textContent = '';
   progressCircle.style.strokeDashoffset = '0';
   setState('running');
   startTime = performance.now();
-  frameId = requestAnimationFrame(animate);
+  frameId = requestAnimationFrame(tick);
 }
 
 function addRipple(x, y) {
@@ -440,8 +528,6 @@ function handleTrigger(clientX, clientY) {
   if (state === 'running') {
     clicks++;
     totalClicks.textContent = clicks;
-    const cps = clicks / (DURATION - remaining);
-    cpsDisplay.textContent = cps.toFixed(2);
     clickText.textContent = clicks;
     if (clientX != null) addRipple(clientX, clientY);
   }
@@ -462,19 +548,30 @@ document.addEventListener('keydown', (e) => {
 });
 
 resetBtn.addEventListener('click', () => {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   if (frameId) { cancelAnimationFrame(frameId); frameId = null; }
   clicks = 0;
-  remaining = DURATION;
+  remaining = duration;
   totalClicks.textContent = '0';
-  cpsDisplay.textContent = '0.00';
-  timeLeft.textContent = DURATION + '.0';
+  liveCps.textContent = '0.00';
+  timeLeft.textContent = duration + '.0';
   gradeText.textContent = '';
   progressCircle.style.strokeDashoffset = '0';
-  progressCircle.style.transition = 'none';
   setState('idle');
 });
 
+durationSelect.addEventListener('change', () => {
+  if (state === 'idle' || state === 'ended') {
+    duration = parseInt(durationSelect.value);
+    remaining = duration;
+    timeLeft.textContent = duration + '.0';
+    totalClicks.textContent = '0';
+    liveCps.textContent = '0.00';
+    gradeText.textContent = '';
+    progressCircle.style.strokeDashoffset = '0';
+  }
+});
+
+renderBestBadge();
 renderSaved();
 </script>
 </body>
