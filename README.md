@@ -1,26 +1,42 @@
-# Game-for-me
+# 🎮 Game-for-me 小游戏合集
 
-一个可直接在浏览器中运行的小游戏合集。
+一个可直接在浏览器中运行的小游戏合集，无需安装任何依赖。打开即玩。
 
 ▶️ **在线游玩：https://huaxiyao.github.io/Game-for-me/**
 
 ## 游戏列表
 
-| 游戏 | 文件 | 说明 |
-|------|------|------|
-| 舒尔特方格 | `schulte-grid.html` | 经典数字点击训练 |
-| 舒尔特方格 Pro | `schulte-pro.html` | 进阶多尺寸/数据图表 |
-| 反应速度测试 | `reaction-test.html` | 视觉反应红绿变化计时 |
-| 五子棋 | `gomoku.html` | 双人对战棋盘博弈 |
-| 手速测试 | `cps-test.html` | 多时长 CPS 点击测试 |
-| 记忆翻牌 | `memory.html` | 翻牌配对考验记忆力 |
-| 打字速度测试 | `typing-test.html` | 中/英文 WPM 测试 |
-| 扫雷 | `minesweeper.html` | 经典扫雷游戏 |
-| 数字记忆 | `number-memory.html` | 递增难度记忆数字 |
-| 数独 | `sudoku.html` | 自动生成经典数独 |
-| 滑动拼图 | `puzzle.html` | 点击滑块还原顺序 |
+| # | 游戏 | 文件 | 玩法 |
+|---|------|------|------|
+| 1 | 🧠 舒尔特方格 | `schulte-grid.html` | 按顺序点击 1→N，训练注意力 |
+| 2 | 🧠 舒尔特方格 Pro | `schulte-pro.html` | 多尺寸、Chart.js 数据图表、主题切换 |
+| 3 | ⚡ 反应速度测试 | `reaction-test.html` | 红色变绿色的瞬间点击，测反应时间 |
+| 4 | ⚫ 五子棋 | `gomoku.html` | 双人轮流落子，五子连珠获胜 |
+| 5 | 🖱️ 手速测试 (CPS) | `cps-test.html` | 10秒/30秒/60秒内疯狂点击，测 CPS |
+| 6 | 🃏 记忆翻牌 | `memory.html` | 翻牌匹配，考验短期记忆力 |
+| 7 | ⌨️ 打字速度测试 | `typing-test.html` | 输入给定文本，测 WPM 和准确率 |
+| 8 | 💣 扫雷 | `minesweeper.html` | 经典扫雷，左键翻开右键标旗 |
+| 9 | 🔢 数字记忆 | `number-memory.html` | 记忆数字序列，逐级递增难度 |
+| 10 | 🧩 数独 | `sudoku.html` | 自动生成谜题，简单/中等/困难 |
+| 11 | 🖼️ 滑动拼图 | `puzzle.html` | 点击方块滑动，还原数字顺序 |
+
+## 特色
+
+- **无依赖** — 所有游戏均为单个 HTML 文件，打开即玩
+- **双模式** — 支持鼠标/触屏和键盘（空格键）操作
+- **响应式** — 适配手机、平板、桌面端
+- **本地记录** — 成绩保存在浏览器 localStorage 中
+- **GitHub Pages** — 直接在线访问，无需下载
 
 ## 使用方式
 
-- **在线**：直接访问上方链接，在浏览器中游玩
-- **本地**：克隆仓库后用浏览器打开对应的 HTML 文件
+**在线访问**：https://huaxiyao.github.io/Game-for-me/
+
+**本地运行**（克隆仓库）：
+```bash
+git clone https://github.com/Huaxiyao/Game-for-me.git
+``
+然后用浏览器打开任意 .html 文件。
+
+---
+💡 如果有新游戏建议或遇到问题，欢迎提 Issue！
