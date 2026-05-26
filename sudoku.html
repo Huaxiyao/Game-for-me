@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数独</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;background:linear-gradient(145deg,#f0f4ff,#e8edf5);display:flex;justify-content:center;align-items:center;user-select:none}
+.container{text-align:center;max-width:420px;width:100%;padding:28px 16px 24px}
+h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
+.subtitle{font-size:13px;color:#94a3b8;margin-bottom:12px}
+.controls-row{display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:12px}
+.controls-row select{padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;background:#fff;color:#334155;outline:none;cursor:pointer}
+.controls-row select:focus{border-color:#818cf8}
+.num-pad{display:flex;gap:4px;justify-content:center;margin-bottom:12px}
+.num-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.num-btn:hover{background:#f8fafc;border-color:#818cf8}
+.num-btn.used{background:#e2e8f0;color:#94a3b8;cursor:default}
+.num-btn.erase{width:auto;padding:0 10px;font-size:12px;color:#ef4444;border-color:#fecaca}
+.grid{display:inline-grid;grid-template-columns:repeat(9,1fr);gap:1px;background:#cbd5e1;border:2px solid #94a3b8;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.04)}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;cursor:pointer;background:#fff;color:#1e293b;transition:background .15s}
+.cell:hover{background:#f1f5f9}
+.cell.given{color:#6366f1;background:#eef2ff;cursor:default;font-size:16px}
+.cell.selected{background:#dbeafe;box-shadow:inset 0 0 0 2px #3b82f6;z-index:1}
+.cell.same-num{background:#e8f4fd}
+.cell.error{color:#ef4444;background:#fef2f2}
+.cell.br{border-right:2px solid #94a3b8}
+.cell.bb{border-bottom:2px solid #94a3b8}
+.stats-row{display:flex;justify-content:center;gap:10px;margin:12px 0}
+.stat-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);border-radius:14px;padding:10px 14px;min-width:70px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border:1px solid rgba(255,255,255,0.8)}
+.stat-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.stat-value{font-size:20px;font-weight:700;color:#1e293b;font-variant-numeric:tabular-nums}
+.grade-text{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:12px;min-height:20px}
+.btn{padding:9px 28px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(226,232,240,0.8)}
+.btn:hover{background:rgba(255,255,255,0.9);color:#475569;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+@media(max-width:400px){.cell{font-size:14px}.num-btn{width:28px;height:28px;font-size:12px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>数独</h1>
+<p class="subtitle">填入数字使每行每列每宫包含1-9</p>
+<div class="controls-row">
+<select id="levelSelect">
+<option value="easy">简单</option>
+<option value="medium" selected>中等</option>
+<option value="hard">困难</option>
+</select>
+</div>
+<div class="num-pad">
+<button class="num-btn" data-n="1">1</button><button class="num-btn" data-n="2">2</button><button class="num-btn" data-n="3">3</button>
+<button class="num-btn" data-n="4">4</button><button class="num-btn" data-n="5">5</button><button class="num-btn" data-n="6">6</button>
+<button class="num-btn" data-n="7">7</button><button class="num-btn" data-n="8">8</button><button class="num-btn" data-n="9">9</button>
+<button class="num-btn erase" id="eraseBtn">擦除</button>
+</div>
+<div class="grid" id="grid"></div>
+<div class="stats-row">
+<div class="stat-card"><div class="stat-label">难度</div><div class="stat-value" id="levelLabel">中等</div></div>
+<div class="stat-card"><div class="stat-label">计时</div><div class="stat-value" id="timerDisp">0s</div></div>
+</div>
+<div class="grade-text" id="gradeText"></div>
+<button class="btn" id="resetBtn">新游戏</button>
+</div>
+<script>
+let puzzle=[],solution=[],given=[],player=[],selectedRow=-1,selectedCol=-1,timer=null,seconds=0;
+const grid=document.getElementById('grid'),timerEl=document.getElementById('timerDisp'),gradeText=document.getElementById('gradeText'),resetBtn=document.getElementById('resetBtn'),levelSelect=document.getElementById('levelSelect'),levelLabel=document.getElementById('levelLabel');
+
+const levelNames={easy:'简单',medium:'中等',hard:'困难'};
+
+function fillBoard(board){
+  for(let row=0;row<9;row++){
+    for(let col=0;col<9;col++){
+      if(board[row][col]===0){
+        const nums=shuffle([...Array(9)].map((_,i)=>i+1));
+        for(const n of nums){
+          if(valid(board,row,col,n)){
+            board[row][col]=n;
+            if(fillBoard(board))return true;
+            board[row][col]=0;
+          }
+        }
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function valid(board,r,c,n){
+  for(let i=0;i<9;i++){if(board[r][i]===n||board[i][c]===n)return false}
+  const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(board[br+i][bc+j]===n)return false;
+  return true;
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function generatePuzzle(level){
+  const board=Array(9).fill().map(()=>Array(9).fill(0));
+  fillBoard(board);
+  for(let i=0;i<9;i++)solution[i]=[...board[i]];
+  const nRemove=level==='easy'?35:(level==='medium'?45:55);
+  const positions=shuffle([...Array(81)].map((_,i)=>{return {r:Math.floor(i/9),c:i%9}}));
+  given=Array(9).fill().map(()=>Array(9).fill(false));
+  puzzle=Array(9).fill().map(()=>Array(9).fill(0));
+  for(let i=0;i<9;i++)for(let j=0;j<9;j++){puzzle[i][j]=board[i][j];given[i][j]=true}
+  let removed=0;
+  for(const p of positions){
+    if(removed>=nRemove)break;
+    if(!given[p.r][p.c])continue;
+    const backup=puzzle[p.r][p.c];
+    puzzle[p.r][p.c]=0;given[p.r][p.c]=false;removed++;
+  }
+  player=Array(9).fill().map(()=>Array(9).fill(0));
+  for(let i=0;i<9;i++)for(let j=0;j<9;j++)player[i][j]=puzzle[i][j];
+}
+
+function init(){
+  const level=levelSelect.value;levelLabel.textContent=levelNames[level];
+  seconds=0;timerEl.textContent='0s';gradeText.textContent='';
+  if(timer)clearInterval(timer);timer=null;
+  selectedRow=-1;selectedCol=-1;
+  generatePuzzle(level);
+  updateUsedCounts();
+  renderGrid();
+}
+
+function startTimer(){
+  if(timer)return;
+  timer=setInterval(()=>{seconds++;timerEl.textContent=seconds+'s'},1000);
+}
+
+function renderGrid(){
+  grid.innerHTML='';
+  const size=Math.min(40,(window.innerWidth-40)/9);
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    const el=document.createElement('div');el.className='cell';
+    el.style.width=el.style.height=size+'px';
+    if(c%3===2&&c<8)el.classList.add('br');
+    if(r%3===2&&r<8)el.classList.add('bb');
+    if(given[r][c])el.classList.add('given');
+    if(player[r][c]!==0&&!given[r][c]){
+      if(!valid(solution,r,c,player[r][c])||player[r][c]!==solution[r][c])el.classList.add('error');
+    }
+    if(r===selectedRow&&c===selectedCol)el.classList.add('selected');
+    else if(selectedRow>=0&&player[r][c]!==0&&player[r][c]===player[selectedRow][selectedCol]&&!(r===selectedRow&&c===selectedCol))el.classList.add('same-num');
+    el.textContent=player[r][c]||'';
+    el.addEventListener('click',()=>selectCell(r,c));
+    grid.appendChild(el);
+  }
+}
+
+function updateUsedCounts(){
+  const counts=Array(10).fill(0);
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(!given[r][c]&&player[r][c]!==0)counts[player[r][c]]++;
+  document.querySelectorAll('.num-btn[data-n]').forEach(b=>{
+    const n=parseInt(b.dataset.n);
+    b.classList.toggle('used',counts[n]>=9);
+  });
+}
+
+function selectCell(r,c){
+  if(given[r][c])return;
+  if(!timer)startTimer();
+  selectedRow=r;selectedCol=c;renderGrid();
+}
+
+function placeNum(n){
+  if(selectedRow<0||selectedCol<0)return;
+  if(given[selectedRow][selectedCol])return;
+  if(!timer)startTimer();
+  player[selectedRow][selectedCol]=n;
+  updateUsedCounts();
+  renderGrid();
+  if(checkWin()){
+    clearInterval(timer);
+    gradeText.textContent='完成了! '+seconds+' 秒';
+  }
+}
+
+function checkWin(){
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]!==solution[r][c])return false;
+  return true;
+}
+
+document.querySelectorAll('.num-btn[data-n]').forEach(b=>{
+  b.addEventListener('click',()=>placeNum(parseInt(b.dataset.n)));
+});
+
+document.getElementById('eraseBtn').addEventListener('click',()=>{if(selectedRow>=0&&!given[selectedRow][selectedCol]){placeNum(0)}});
+
+document.addEventListener('keydown',(e)=>{
+  const n=parseInt(e.key);
+  if(n>=1&&n<=9){placeNum(n)}else if(e.key==='Backspace'||e.key==='Delete'){if(selectedRow>=0&&!given[selectedRow][selectedCol])placeNum(0)}
+  else if(e.key==='ArrowUp'&&selectedRow>0){selectCell(selectedRow-1,selectedCol)}
+  else if(e.key==='ArrowDown'&&selectedRow<8){selectCell(selectedRow+1,selectedCol)}
+  else if(e.key==='ArrowLeft'&&selectedCol>0){selectCell(selectedRow,selectedCol-1)}
+  else if(e.key==='ArrowRight'&&selectedCol<8){selectCell(selectedRow,selectedCol+1)}
+});
+
+resetBtn.addEventListener('click',init);
+levelSelect.addEventListener('change',init);
+init();
+</script>
+</body>
+</html>

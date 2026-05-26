@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字记忆测试</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;background:linear-gradient(145deg,#f0f4ff,#e8edf5);display:flex;justify-content:center;align-items:center;user-select:none}
+.container{text-align:center;max-width:420px;width:100%;padding:32px 24px 28px}
+h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
+.subtitle{font-size:13px;color:#94a3b8;margin-bottom:20px}
+.stage-area{width:260px;height:260px;border-radius:50%;margin:0 auto 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:background .3s,box-shadow .3s}
+.stage-area.showing{background:linear-gradient(135deg,#818cf8,#6366f1);box-shadow:0 12px 40px rgba(99,102,241,0.30)}
+.stage-area.inputting{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 12px 40px rgba(245,158,11,0.30)}
+.stage-area.wrong{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 12px 40px rgba(239,68,68,0.30);animation:shake .4s}
+.stage-area.success{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 12px 48px rgba(16,185,129,0.35);animation:pop .4s cubic-bezier(0.34,1.56,0.64,1)}
+.stage-area::after{content:'';position:absolute;inset:2px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent 50%);pointer-events:none}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.num-big{font-size:56px;font-weight:800;color:#fff;letter-spacing:6px;position:relative;z-index:1}
+.num-hint{font-size:14px;font-weight:500;color:rgba(255,255,255,0.8);position:relative;z-index:1;margin-top:6px}
+.input-row{display:flex;justify-content:center;gap:10px;margin-bottom:14px;align-items:center}
+#numInput{width:200px;padding:10px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:20px;font-weight:600;text-align:center;letter-spacing:4px;outline:none;transition:border-color .2s;color:#1e293b;background:#fff}
+#numInput:focus{border-color:#818cf8}
+#numInput:disabled{background:#f8fafc;color:#94a3b8}
+.btn-submit{padding:8px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;background:#6366f1;color:#fff;transition:all .2s}
+.btn-submit:hover{background:#4f46e5;box-shadow:0 4px 12px rgba(99,102,241,0.3)}
+.stats-row{display:flex;justify-content:center;gap:10px;margin-bottom:14px}
+.stat-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);border-radius:14px;padding:10px 14px;min-width:70px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border:1px solid rgba(255,255,255,0.8)}
+.stat-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.stat-value{font-size:20px;font-weight:700;color:#1e293b;font-variant-numeric:tabular-nums}
+.stat-card.highlight .stat-value{color:#10b981}
+.grade-text{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:14px;min-height:20px}
+.btn{padding:9px 28px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(226,232,240,0.8)}
+.btn:hover{background:rgba(255,255,255,0.9);color:#475569;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+@media(max-width:420px){.stage-area{width:220px;height:220px}.num-big{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>数字记忆测试</h1>
+<p class="subtitle">记住出现的数字，然后输入</p>
+<div class="stage-area" id="stage">
+<span class="num-big" id="numDisplay"></span>
+<span class="num-hint" id="numHint">等待数字...</span>
+</div>
+<div class="input-row">
+<input type="text" id="numInput" placeholder="输入数字" disabled>
+<button class="btn-submit" id="submitBtn" disabled>确认</button>
+</div>
+<div class="stats-row">
+<div class="stat-card"><div class="stat-label">等级</div><div class="stat-value" id="levelDisp">1</div></div>
+<div class="stat-card highlight"><div class="stat-label">最佳</div><div class="stat-value" id="bestDisp">0</div></div>
+<div class="stat-card"><div class="stat-label">位数</div><div class="stat-value" id="digitCount">3</div></div>
+</div>
+<div class="grade-text" id="gradeText"></div>
+<button class="btn" id="resetBtn">重新开始</button>
+</div>
+<script>
+const STORAGE_KEY='number_memory_best';
+const stageEl=document.getElementById('stage'),numDisplay=document.getElementById('numDisplay'),numHint=document.getElementById('numHint'),numInput=document.getElementById('numInput'),submitBtn=document.getElementById('submitBtn'),levelDisp=document.getElementById('levelDisp'),bestDisp=document.getElementById('bestDisp'),digitCount=document.getElementById('digitCount'),gradeText=document.getElementById('gradeText'),resetBtn=document.getElementById('resetBtn');
+let level=1,digits=3,currentNum='',phase='showing',bestBest=0;
+
+function loadBest(){const v=localStorage.getItem(STORAGE_KEY);return v?parseInt(v):0}
+function saveBest(l){if(l>bestBest){bestBest=l;bestDisp.textContent=l;localStorage.setItem(STORAGE_KEY,String(l))}}
+
+function startLevel(){
+  digits=level+2;digitCount.textContent=digits;currentNum='';
+  for(let i=0;i<digits;i++)currentNum+=Math.floor(Math.random()*10);
+  phase='showing';numInput.value='';numInput.disabled=true;submitBtn.disabled=true;
+  stageEl.className='stage-area showing';numDisplay.textContent=currentNum;numHint.textContent='记住这个数字';
+  const showTime=Math.max(1500,digits*500);
+  setTimeout(()=>{
+    if(phase!=='showing')return;
+    numDisplay.textContent='?';numHint.textContent='输入你记住的数字';
+    stageEl.className='stage-area inputting';phase='inputting';
+    numInput.disabled=false;numInput.focus();submitBtn.disabled=false;
+  },showTime);
+}
+
+function checkAnswer(){
+  if(phase!=='inputting')return;
+  const ans=numInput.value.trim();
+  if(ans===currentNum){
+    phase='success';saveBest(level);levelDisp.textContent=level;
+    stageEl.className='stage-area success';numDisplay.textContent='✓';numHint.textContent='正确!';
+    numInput.disabled=true;submitBtn.disabled=true;gradeText.textContent='第 '+level+' 关通过!';
+    level++;
+    setTimeout(startLevel,1200);
+  }else{
+    phase='wrong';stageEl.className='stage-area wrong';numDisplay.textContent=currentNum;numHint.textContent='正确答案';
+    numInput.disabled=true;submitBtn.disabled=true;
+    saveBest(level-1);gradeText.textContent='失败在第 '+level+' 关，正确答案：'+currentNum;
+  }
+}
+
+submitBtn.addEventListener('click',checkAnswer);
+numInput.addEventListener('keydown',(e)=>{if(e.key==='Enter')checkAnswer()});
+resetBtn.addEventListener('click',()=>{level=1;gradeText.textContent='';startLevel()});
+bestBest=loadBest();bestDisp.textContent=bestBest;levelDisp.textContent='1';
+startLevel();
+</script>
+</body>
+</html>
