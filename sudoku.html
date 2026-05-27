@@ -7,34 +7,58 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;background:linear-gradient(145deg,#f0f4ff,#e8edf5);display:flex;justify-content:center;align-items:center;user-select:none}
-.container{text-align:center;max-width:420px;width:100%;padding:28px 16px 24px}
+.container{text-align:center;max-width:440px;width:100%;padding:28px 16px 24px}
 h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
 .subtitle{font-size:13px;color:#94a3b8;margin-bottom:12px}
-.controls-row{display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:12px}
+.controls-row{display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.controls-row label{font-size:13px;font-weight:500;color:#64748b;display:flex;align-items:center;gap:4px}
 .controls-row select{padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;background:#fff;color:#334155;outline:none;cursor:pointer}
 .controls-row select:focus{border-color:#818cf8}
-.num-pad{display:flex;gap:4px;justify-content:center;margin-bottom:12px}
-.num-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
-.num-btn:hover{background:#f8fafc;border-color:#818cf8}
-.num-btn.used{background:#e2e8f0;color:#94a3b8;cursor:default}
-.num-btn.erase{width:auto;padding:0 10px;font-size:12px;color:#ef4444;border-color:#fecaca}
-.grid{display:inline-grid;grid-template-columns:repeat(9,1fr);gap:1px;background:#cbd5e1;border:2px solid #94a3b8;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.04)}
-.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;cursor:pointer;background:#fff;color:#1e293b;transition:background .15s}
+.toolbar{display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
+.tool-btn{padding:5px 14px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.tool-btn:hover{border-color:#818cf8;color:#6366f1}
+.tool-btn.active{background:#6366f1;color:#fff;border-color:#6366f1}
+.tool-btn.undo{color:#ef4444;border-color:#fecaca}
+.tool-btn.undo:hover{border-color:#ef4444;background:#fef2f2}
+.tool-btn.hint{color:#10b981;border-color:#d1fae5}
+.tool-btn.hint:hover{border-color:#10b981;background:#d1fae5}
+.num-pad{display:flex;gap:5px;justify-content:center;margin-bottom:12px}
+.num-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:15px;font-weight:600;cursor:pointer;transition:all .12s}
+.num-btn:hover{background:#f1f5f9;border-color:#818cf8}
+.num-btn.used{background:#f1f5f9;color:#cbd5e1;cursor:default;border-color:transparent}
+.num-btn.erase{width:auto;padding:0 12px;font-size:12px;color:#ef4444;border-color:#fecaca}
+.grid{display:inline-grid;grid-template-columns:repeat(9,1fr);gap:1px;background:#b0b8c4;border:2px solid #94a3b8;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;cursor:pointer;background:#fff;color:#1e293b;transition:background .12s;position:relative}
 .cell:hover{background:#f1f5f9}
-.cell.given{color:#6366f1;background:#eef2ff;cursor:default;font-size:16px}
-.cell.selected{background:#dbeafe;box-shadow:inset 0 0 0 2px #3b82f6;z-index:1}
-.cell.same-num{background:#e8f4fd}
-.cell.error{color:#ef4444;background:#fef2f2}
+.cell.given{color:#4338ca;background:#eef2ff;cursor:default}
+.cell.user{color:#1e293b}
+.cell.selected{background:#bfdbfe!important;box-shadow:inset 0 0 0 2px #3b82f6}
+.cell.same-row,.cell.same-col,.cell.same-box{background:#f8fafc}
+.cell.same-num{background:#e0e7ff}
+.cell.error{color:#dc2626;background:#fef2f2}
 .cell.br{border-right:2px solid #94a3b8}
 .cell.bb{border-bottom:2px solid #94a3b8}
-.stats-row{display:flex;justify-content:center;gap:10px;margin:12px 0}
+.cell .notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);position:absolute;inset:2px}
+.cell .notes span{font-size:8px;font-weight:500;color:#94a3b8;display:flex;align-items:center;justify-content:center;line-height:1}
+.win-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;animation:fadeIn .3s forwards}
+@keyframes fadeIn{to{opacity:1}}
+.win-box{background:#fff;border-radius:20px;padding:40px 48px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:slideUp .4s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.win-box h2{font-size:28px;color:#1e293b;margin-bottom:8px}
+.win-box p{font-size:16px;color:#64748b;margin-bottom:20px;line-height:1.6}
+.win-box .btn{padding:10px 32px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;background:#6366f1;color:#fff;transition:all .2s}
+.win-box .btn:hover{background:#4f46e5}
+.stats-row{display:flex;justify-content:center;gap:10px;margin:10px 0}
 .stat-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);border-radius:14px;padding:10px 14px;min-width:70px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border:1px solid rgba(255,255,255,0.8)}
 .stat-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
 .stat-value{font-size:20px;font-weight:700;color:#1e293b;font-variant-numeric:tabular-nums}
-.grade-text{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:12px;min-height:20px}
+.grade-text{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:10px;min-height:20px}
+.bottom-btns{display:flex;gap:8px;justify-content:center}
 .btn{padding:9px 28px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(226,232,240,0.8)}
 .btn:hover{background:rgba(255,255,255,0.9);color:#475569;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
-@media(max-width:400px){.cell{font-size:14px}.num-btn{width:28px;height:28px;font-size:12px}}
+.btn.primary{background:#6366f1;color:#fff;border-color:#6366f1}
+.btn.primary:hover{background:#4f46e5}
+@media(max-width:400px){.cell{font-size:14px}.cell .notes span{font-size:7px}.num-btn{width:28px;height:28px;font-size:13px}.grid{gap:1px}}
 </style>
 </head>
 <body>
@@ -42,11 +66,18 @@ h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
 <h1>数独</h1>
 <p class="subtitle">填入数字使每行每列每宫包含1-9</p>
 <div class="controls-row">
-<select id="levelSelect">
+<label>难度 <select id="levelSelect">
 <option value="easy">简单</option>
 <option value="medium" selected>中等</option>
 <option value="hard">困难</option>
-</select>
+</select></label>
+</div>
+<div class="toolbar">
+<button class="tool-btn active" id="normalMode">填入</button>
+<button class="tool-btn" id="noteMode">笔记</button>
+<button class="tool-btn undo" id="undoBtn">撤销</button>
+<button class="tool-btn hint" id="hintBtn">提示</button>
+<button class="tool-btn" id="hintCountBtn">提示 3/3</button>
 </div>
 <div class="num-pad">
 <button class="num-btn" data-n="1">1</button><button class="num-btn" data-n="2">2</button><button class="num-btn" data-n="3">3</button>
@@ -57,126 +88,200 @@ h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
 <div class="grid" id="grid"></div>
 <div class="stats-row">
 <div class="stat-card"><div class="stat-label">难度</div><div class="stat-value" id="levelLabel">中等</div></div>
-<div class="stat-card"><div class="stat-label">计时</div><div class="stat-value" id="timerDisp">0s</div></div>
+<div class="stat-card"><div class="stat-label">计时</div><div class="stat-value" id="timerDisp">00:00</div></div>
+<div class="stat-card"><div class="stat-label">剩余</div><div class="stat-value" id="remainCount">0</div></div>
 </div>
 <div class="grade-text" id="gradeText"></div>
-<button class="btn" id="resetBtn">新游戏</button>
+<div class="bottom-btns">
+<button class="btn primary" id="resetBtn">新游戏</button>
+</div>
 </div>
 <script>
-let puzzle=[],solution=[],given=[],player=[],selectedRow=-1,selectedCol=-1,timer=null,seconds=0;
-const grid=document.getElementById('grid'),timerEl=document.getElementById('timerDisp'),gradeText=document.getElementById('gradeText'),resetBtn=document.getElementById('resetBtn'),levelSelect=document.getElementById('levelSelect'),levelLabel=document.getElementById('levelLabel');
-
+const STORAGE_KEY='sudoku_best';
+let solution=[],given=[],player=[],notes=[],history=[];
+let selectedRow=-1,selectedCol=-1,timer=null,seconds=0,noteMode=false,hintsLeft=3,hintsUsed=0;
+const grid=document.getElementById('grid'),timerEl=document.getElementById('timerDisp'),gradeText=document.getElementById('gradeText'),resetBtn=document.getElementById('resetBtn'),levelSelect=document.getElementById('levelSelect'),levelLabel=document.getElementById('levelLabel'),normalModeBtn=document.getElementById('normalMode'),noteModeBtn=document.getElementById('noteMode'),undoBtn=document.getElementById('undoBtn'),hintBtn=document.getElementById('hintBtn'),hintCountBtn=document.getElementById('hintCountBtn'),remainEl=document.getElementById('remainCount');
 const levelNames={easy:'简单',medium:'中等',hard:'困难'};
 
-function fillBoard(board){
-  for(let row=0;row<9;row++){
-    for(let col=0;col<9;col++){
-      if(board[row][col]===0){
-        const nums=shuffle([...Array(9)].map((_,i)=>i+1));
-        for(const n of nums){
-          if(valid(board,row,col,n)){
-            board[row][col]=n;
-            if(fillBoard(board))return true;
-            board[row][col]=0;
-          }
-        }
-        return false;
-      }
-    }
-  }
-  return true;
-}
+function loadBest(){const v=localStorage.getItem(STORAGE_KEY);return v?JSON.parse(v):null}
+function saveBest(level,secs){const b=loadBest(),key=level;if(!b||!b[key]||secs<b[key])const n=b?{...b}:{},{[key]:secs}&&Object.assign(n,b||{},{[key]:secs}),localStorage.setItem(STORAGE_KEY,JSON.stringify(n))}
 
-function valid(board,r,c,n){
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function validPlacement(board,r,c,n){
   for(let i=0;i<9;i++){if(board[r][i]===n||board[i][c]===n)return false}
   const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
   for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(board[br+i][bc+j]===n)return false;
   return true;
 }
 
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function solveSudoku(board){
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    if(board[r][c]===0){
+      const nums=shuffle([1,2,3,4,5,6,7,8,9]);
+      for(const n of nums){
+        if(validPlacement(board,r,c,n)){
+          board[r][c]=n;
+          if(solveSudoku(board))return true;
+          board[r][c]=0;
+        }
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+function countSolutions(board,limit){
+  let count=0;
+  function solve(){
+    if(count>=limit)return;
+    for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+      if(board[r][c]===0){
+        for(let n=1;n<=9;n++){
+          if(validPlacement(board,r,c,n)){
+            board[r][c]=n;
+            solve();
+            board[r][c]=0;
+          }
+        }
+        return;
+      }
+    }
+    count++;
+  }
+  solve();
+  return count;
+}
 
 function generatePuzzle(level){
   const board=Array(9).fill().map(()=>Array(9).fill(0));
-  fillBoard(board);
+  solveSudoku(board);
   for(let i=0;i<9;i++)solution[i]=[...board[i]];
-  const nRemove=level==='easy'?35:(level==='medium'?45:55);
-  const positions=shuffle([...Array(81)].map((_,i)=>{return {r:Math.floor(i/9),c:i%9}}));
-  given=Array(9).fill().map(()=>Array(9).fill(false));
-  puzzle=Array(9).fill().map(()=>Array(9).fill(0));
-  for(let i=0;i<9;i++)for(let j=0;j<9;j++){puzzle[i][j]=board[i][j];given[i][j]=true}
+  const targets={easy:38,medium:46,hard:52};
+  const target=targets[level]||46;
+  const positions=shuffle([...Array(81)].map((_,i)=>({r:Math.floor(i/9),c:i%9})));
+  given=Array(9).fill().map(()=>Array(9).fill(true));
   let removed=0;
   for(const p of positions){
-    if(removed>=nRemove)break;
-    if(!given[p.r][p.c])continue;
-    const backup=puzzle[p.r][p.c];
-    puzzle[p.r][p.c]=0;given[p.r][p.c]=false;removed++;
+    if(removed>=target)break;
+    const backup=board[p.r][p.c];
+    board[p.r][p.c]=0;
+    const test=Array(9).fill().map((_,r)=>[...board[r]]);
+    if(countSolutions(test,2)===1){removed++;given[p.r][p.c]=false}
+    else board[p.r][p.c]=backup;
   }
-  player=Array(9).fill().map(()=>Array(9).fill(0));
-  for(let i=0;i<9;i++)for(let j=0;j<9;j++)player[i][j]=puzzle[i][j];
+  puzzle=board;
+  player=Array(9).fill().map((_,r)=>[...board[r]]);
+  notes=Array(9).fill().map(()=>Array(9).fill().map(()=>new Set()));
+  history=[];
+  hintsLeft=3;hintsUsed=0;
+  hintCountBtn.textContent='提示 '+hintsLeft+'/3';
 }
 
+let puzzle;
 function init(){
   const level=levelSelect.value;levelLabel.textContent=levelNames[level];
-  seconds=0;timerEl.textContent='0s';gradeText.textContent='';
+  seconds=0;timerEl.textContent='00:00';gradeText.textContent='';
   if(timer)clearInterval(timer);timer=null;
-  selectedRow=-1;selectedCol=-1;
+  selectedRow=-1;selectedCol=-1;noteMode=false;
+  normalModeBtn.classList.add('active');noteModeBtn.classList.remove('active');
   generatePuzzle(level);
-  updateUsedCounts();
-  renderGrid();
+  updateRemain();updateUsedCounts();renderGrid();
 }
 
-function startTimer(){
-  if(timer)return;
-  timer=setInterval(()=>{seconds++;timerEl.textContent=seconds+'s'},1000);
+function startTimer(){if(timer)return;timer=setInterval(()=>{seconds++;const m=Math.floor(seconds/60),s=seconds%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000)}
+
+function updateRemain(){
+  let rem=0;
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]===0)rem++;
+  remainEl.textContent=rem;
+}
+
+function updateUsedCounts(){
+  const counts=Array(10).fill(0);
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]!==0)counts[player[r][c]]++;
+  document.querySelectorAll('.num-btn[data-n]').forEach(b=>{
+    b.classList.toggle('used',counts[parseInt(b.dataset.n)]>=9);
+  });
 }
 
 function renderGrid(){
   grid.innerHTML='';
-  const size=Math.min(40,(window.innerWidth-40)/9);
+  const size=Math.min(42,(window.innerWidth-36)/9);
+  const selNum=selectedRow>=0?player[selectedRow][selectedCol]:0;
+  const selBox=selectedRow>=0?Math.floor(selectedRow/3)*3+Math.floor(selectedCol/3):-1;
   for(let r=0;r<9;r++)for(let c=0;c<9;c++){
     const el=document.createElement('div');el.className='cell';
     el.style.width=el.style.height=size+'px';
     if(c%3===2&&c<8)el.classList.add('br');
     if(r%3===2&&r<8)el.classList.add('bb');
     if(given[r][c])el.classList.add('given');
-    if(player[r][c]!==0&&!given[r][c]){
-      if(!valid(solution,r,c,player[r][c])||player[r][c]!==solution[r][c])el.classList.add('error');
+    else el.classList.add('user');
+    if(r===selectedRow&&c===selectedCol){el.classList.add('selected')}
+    else if(selectedRow>=0){
+      if(r===selectedRow||c===selectedCol)el.classList.add('same-row');
+      if(Math.floor(r/3)*3+Math.floor(c/3)===selBox)el.classList.add('same-box');
     }
-    if(r===selectedRow&&c===selectedCol)el.classList.add('selected');
-    else if(selectedRow>=0&&player[r][c]!==0&&player[r][c]===player[selectedRow][selectedCol]&&!(r===selectedRow&&c===selectedCol))el.classList.add('same-num');
-    el.textContent=player[r][c]||'';
+    if(selNum!==0&&player[r][c]===selNum&&!(r===selectedRow&&c===selectedCol))el.classList.add('same-num');
+    if(!given[r][c]&&player[r][c]!==0&&!validPlacement(player,r,c,player[r][c]))el.classList.add('error');
+    if(player[r][c]!==0){
+      el.textContent=player[r][c];
+    }else if(notes[r][c].size>0){
+      const nd=document.createElement('div');nd.className='notes';
+      for(let n=1;n<=9;n++){const sp=document.createElement('span');sp.textContent=notes[r][c].has(n)?n:'';nd.appendChild(sp)}
+      el.appendChild(nd);
+    }
     el.addEventListener('click',()=>selectCell(r,c));
     grid.appendChild(el);
   }
 }
 
-function updateUsedCounts(){
-  const counts=Array(10).fill(0);
-  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(!given[r][c]&&player[r][c]!==0)counts[player[r][c]]++;
-  document.querySelectorAll('.num-btn[data-n]').forEach(b=>{
-    const n=parseInt(b.dataset.n);
-    b.classList.toggle('used',counts[n]>=9);
-  });
-}
-
 function selectCell(r,c){
-  if(given[r][c])return;
   if(!timer)startTimer();
   selectedRow=r;selectedCol=c;renderGrid();
 }
 
 function placeNum(n){
   if(selectedRow<0||selectedCol<0)return;
-  if(given[selectedRow][selectedCol])return;
+  const r=selectedRow,c=selectedCol;
+  if(given[r][c])return;
   if(!timer)startTimer();
-  player[selectedRow][selectedCol]=n;
-  updateUsedCounts();
-  renderGrid();
-  if(checkWin()){
-    clearInterval(timer);
-    gradeText.textContent='完成了! '+seconds+' 秒';
+  if(noteMode&&n>0){
+    history.push({type:'note',r,c,val:n,prev:new Set(notes[r][c])});
+    if(notes[r][c].has(n))notes[r][c].delete(n);else notes[r][c].add(n);
+    player[r][c]=0;
+  }else{
+    history.push({type:'place',r,c,prev:player[r][c],prevNotes:new Set(notes[r][c])});
+    player[r][c]=n;notes[r][c]=new Set();
+    if(n>0){for(let i=0;i<9;i++){notes[r][i].delete(n);notes[i][c].delete(n)}}
   }
+  updateUsedCounts();updateRemain();renderGrid();
+  if(checkWin())showWin();
+}
+
+function undo(){
+  if(!history.length)return;
+  const h=history.pop();
+  if(h.type==='note'){
+    notes[h.r][h.c]=h.prev;
+  }else{
+    player[h.r][h.c]=h.prev;notes[h.r][h.c]=h.prevNotes;
+  }
+  selectedRow=h.r;selectedCol=h.c;
+  updateUsedCounts();updateRemain();renderGrid();
+}
+
+function useHint(){
+  if(hintsLeft<=0)return;
+  if(selectedRow<0||selectedCol<0||given[selectedRow][selectedCol]||player[selectedRow][selectedCol]===solution[selectedRow][selectedCol])return;
+  history.push({type:'place',r:selectedRow,c:selectedCol,prev:player[selectedRow][selectedCol],prevNotes:new Set(notes[selectedRow][selectedCol])});
+  player[selectedRow][selectedCol]=solution[selectedRow][selectedCol];
+  notes[selectedRow][selectedCol]=new Set();
+  hintsLeft--;
+  hintCountBtn.textContent='提示 '+hintsLeft+'/3';
+  updateUsedCounts();updateRemain();renderGrid();
+  if(checkWin())showWin();
 }
 
 function checkWin(){
@@ -184,15 +289,33 @@ function checkWin(){
   return true;
 }
 
+function showWin(){
+  clearInterval(timer);timer=null;
+  saveBest(levelSelect.value,seconds);
+  const m=Math.floor(seconds/60),s=seconds%60,timeStr=m>0?m+'分'+s+'秒':s+'秒';
+  const overlay=document.createElement('div');overlay.className='win-overlay';
+  overlay.innerHTML='<div class="win-box"><h2>🎉 完成!</h2><p>'+timeStr+(hintsUsed>0?' · 使用了 '+(3-hintsLeft)+' 个提示':'')+'</p><button onclick="this.closest(\'.win-overlay\').remove()">确定</button></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+  gradeText.textContent='完成! '+timeStr;
+}
+
+normalModeBtn.addEventListener('click',()=>{noteMode=false;normalModeBtn.classList.add('active');noteModeBtn.classList.remove('active')});
+noteModeBtn.addEventListener('click',()=>{noteMode=true;noteModeBtn.classList.add('active');normalModeBtn.classList.remove('active')});
+undoBtn.addEventListener('click',undo);
+hintBtn.addEventListener('click',useHint);
+
 document.querySelectorAll('.num-btn[data-n]').forEach(b=>{
   b.addEventListener('click',()=>placeNum(parseInt(b.dataset.n)));
 });
-
-document.getElementById('eraseBtn').addEventListener('click',()=>{if(selectedRow>=0&&!given[selectedRow][selectedCol]){placeNum(0)}});
+document.getElementById('eraseBtn').addEventListener('click',()=>placeNum(0));
 
 document.addEventListener('keydown',(e)=>{
   const n=parseInt(e.key);
-  if(n>=1&&n<=9){placeNum(n)}else if(e.key==='Backspace'||e.key==='Delete'){if(selectedRow>=0&&!given[selectedRow][selectedCol])placeNum(0)}
+  if(n>=1&&n<=9){placeNum(n)}
+  else if(e.key==='Backspace'||e.key==='Delete'||e.key==='0'){placeNum(0)}
+  else if(e.key==='z'&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo()}
+  else if(e.key==='n'){noteMode=!noteMode;normalModeBtn.classList.toggle('active',!noteMode);noteModeBtn.classList.toggle('active',noteMode)}
   else if(e.key==='ArrowUp'&&selectedRow>0){selectCell(selectedRow-1,selectedCol)}
   else if(e.key==='ArrowDown'&&selectedRow<8){selectCell(selectedRow+1,selectedCol)}
   else if(e.key==='ArrowLeft'&&selectedCol>0){selectCell(selectedRow,selectedCol-1)}
