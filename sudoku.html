@@ -104,7 +104,10 @@ const grid=document.getElementById('grid'),timerEl=document.getElementById('time
 const levelNames={easy:'简单',medium:'中等',hard:'困难'};
 
 function loadBest(){const v=localStorage.getItem(STORAGE_KEY);return v?JSON.parse(v):null}
-function saveBest(level,secs){const b=loadBest(),key=level;if(!b||!b[key]||secs<b[key])const n=b?{...b}:{},{[key]:secs}&&Object.assign(n,b||{},{[key]:secs}),localStorage.setItem(STORAGE_KEY,JSON.stringify(n))}
+function saveBest(level,secs){
+  const b=loadBest()||{};
+  if(!b[level]||secs<b[level]){b[level]=secs;localStorage.setItem(STORAGE_KEY,JSON.stringify(b))}
+}
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
@@ -278,7 +281,7 @@ function useHint(){
   history.push({type:'place',r:selectedRow,c:selectedCol,prev:player[selectedRow][selectedCol],prevNotes:new Set(notes[selectedRow][selectedCol])});
   player[selectedRow][selectedCol]=solution[selectedRow][selectedCol];
   notes[selectedRow][selectedCol]=new Set();
-  hintsLeft--;
+  hintsLeft--;hintsUsed++;
   hintCountBtn.textContent='提示 '+hintsLeft+'/3';
   updateUsedCounts();updateRemain();renderGrid();
   if(checkWin())showWin();
