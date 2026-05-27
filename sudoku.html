@@ -7,58 +7,72 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;background:linear-gradient(145deg,#f0f4ff,#e8edf5);display:flex;justify-content:center;align-items:center;user-select:none}
-.container{text-align:center;max-width:440px;width:100%;padding:28px 16px 24px}
+.container{text-align:center;max-width:460px;width:100%;padding:24px 16px 20px}
 h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
-.subtitle{font-size:13px;color:#94a3b8;margin-bottom:12px}
-.controls-row{display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.subtitle{font-size:13px;color:#94a3b8;margin-bottom:10px}
+.controls-row{display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:10px}
 .controls-row label{font-size:13px;font-weight:500;color:#64748b;display:flex;align-items:center;gap:4px}
 .controls-row select{padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;background:#fff;color:#334155;outline:none;cursor:pointer}
 .controls-row select:focus{border-color:#818cf8}
-.toolbar{display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
-.tool-btn{padding:5px 14px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.toggle-row{display:flex;justify-content:center;gap:12px;margin-bottom:10px}
+.toggle-label{font-size:12px;color:#64748b;display:flex;align-items:center;gap:4px;cursor:pointer}
+.toggle-label input{width:14px;height:14px;accent-color:#6366f1}
+.toolbar{display:flex;gap:5px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.tool-btn{padding:4px 12px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap}
 .tool-btn:hover{border-color:#818cf8;color:#6366f1}
 .tool-btn.active{background:#6366f1;color:#fff;border-color:#6366f1}
 .tool-btn.undo{color:#ef4444;border-color:#fecaca}
 .tool-btn.undo:hover{border-color:#ef4444;background:#fef2f2}
 .tool-btn.hint{color:#10b981;border-color:#d1fae5}
 .tool-btn.hint:hover{border-color:#10b981;background:#d1fae5}
-.num-pad{display:flex;gap:5px;justify-content:center;margin-bottom:12px}
-.num-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:15px;font-weight:600;cursor:pointer;transition:all .12s}
+.tool-btn.auto{color:#f59e0b;border-color:#fef3c7}
+.tool-btn.auto:hover{border-color:#f59e0b;background:#fef3c7}
+.num-pad{display:flex;gap:5px;justify-content:center;margin-bottom:10px}
+.num-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:15px;font-weight:600;cursor:pointer;transition:all .12s;position:relative}
 .num-btn:hover{background:#f1f5f9;border-color:#818cf8}
 .num-btn.used{background:#f1f5f9;color:#cbd5e1;cursor:default;border-color:transparent}
+.num-btn.done{background:#d1fae5;color:#059669;border-color:#a7f3d0}
 .num-btn.erase{width:auto;padding:0 12px;font-size:12px;color:#ef4444;border-color:#fecaca}
-.grid{display:inline-grid;grid-template-columns:repeat(9,1fr);gap:1px;background:#b0b8c4;border:2px solid #94a3b8;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
-.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;cursor:pointer;background:#fff;color:#1e293b;transition:background .12s;position:relative}
+.grid-wrap{display:inline-block;position:relative}
+.grid{display:inline-grid;grid-template-columns:repeat(9,1fr);gap:1px;background:#b0b8c4;border:2px solid #94a3b8;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.06);position:relative}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;cursor:pointer;background:#fff;color:#1e293b;transition:background .12s,transform .15s;position:relative;overflow:hidden}
 .cell:hover{background:#f1f5f9}
 .cell.given{color:#4338ca;background:#eef2ff;cursor:default}
 .cell.user{color:#1e293b}
 .cell.selected{background:#bfdbfe!important;box-shadow:inset 0 0 0 2px #3b82f6}
 .cell.same-row,.cell.same-col,.cell.same-box{background:#f8fafc}
 .cell.same-num{background:#e0e7ff}
-.cell.error{color:#dc2626;background:#fef2f2}
+.cell.conflict{background:#fef2f2!important;color:#dc2626!important}
+.cell.complete{animation:completeFlash .5s}
+@keyframes completeFlash{0%{background:#d1fae5}100%{background:#fff}}
 .cell.br{border-right:2px solid #94a3b8}
 .cell.bb{border-bottom:2px solid #94a3b8}
-.cell .notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);position:absolute;inset:2px}
+.cell .notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);position:absolute;inset:1px}
 .cell .notes span{font-size:8px;font-weight:500;color:#94a3b8;display:flex;align-items:center;justify-content:center;line-height:1}
-.win-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;animation:fadeIn .3s forwards}
-@keyframes fadeIn{to{opacity:1}}
-.win-box{background:#fff;border-radius:20px;padding:40px 48px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:slideUp .4s cubic-bezier(0.34,1.56,0.64,1)}
-@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
-.win-box h2{font-size:28px;color:#1e293b;margin-bottom:8px}
-.win-box p{font-size:16px;color:#64748b;margin-bottom:20px;line-height:1.6}
-.win-box .btn{padding:10px 32px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;background:#6366f1;color:#fff;transition:all .2s}
-.win-box .btn:hover{background:#4f46e5}
-.stats-row{display:flex;justify-content:center;gap:10px;margin:10px 0}
-.stat-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);border-radius:14px;padding:10px 14px;min-width:70px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border:1px solid rgba(255,255,255,0.8)}
-.stat-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
-.stat-value{font-size:20px;font-weight:700;color:#1e293b;font-variant-numeric:tabular-nums}
-.grade-text{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:10px;min-height:20px}
+.cell .pop{animation:numPop .2s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes numPop{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.stats-row{display:flex;justify-content:center;gap:8px;margin:8px 0}
+.stat-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);border-radius:14px;padding:8px 12px;min-width:64px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border:1px solid rgba(255,255,255,0.8)}
+.stat-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.stat-value{font-size:18px;font-weight:700;color:#1e293b;font-variant-numeric:tabular-nums}
+.grade-text{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:8px;min-height:18px}
 .bottom-btns{display:flex;gap:8px;justify-content:center}
-.btn{padding:9px 28px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(226,232,240,0.8)}
+.btn{padding:8px 24px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(226,232,240,0.8)}
 .btn:hover{background:rgba(255,255,255,0.9);color:#475569;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
 .btn.primary{background:#6366f1;color:#fff;border-color:#6366f1}
 .btn.primary:hover{background:#4f46e5}
-@media(max-width:400px){.cell{font-size:14px}.cell .notes span{font-size:7px}.num-btn{width:28px;height:28px;font-size:13px}.grid{gap:1px}}
+.best-bar{display:flex;justify-content:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.best-item{font-size:11px;color:#94a3b8;background:rgba(255,255,255,0.6);padding:3px 10px;border-radius:8px}
+.best-item b{color:#6366f1;font-weight:600}
+.win-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;animation:fadeIn .3s forwards}
+@keyframes fadeIn{to{opacity:1}}
+.win-box{background:#fff;border-radius:20px;padding:36px 44px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:slideUp .4s cubic-bezier(0.34,1.56,0.64,1);max-width:340px;width:90%}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.win-box h2{font-size:26px;color:#1e293b;margin-bottom:6px}
+.win-box p{font-size:15px;color:#64748b;margin-bottom:16px;line-height:1.5}
+.win-box .btn{padding:10px 32px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;background:#6366f1;color:#fff;transition:all .2s}
+.win-box .btn:hover{background:#4f46e5}
+@media(max-width:400px){.cell{font-size:14px}.cell .notes span{font-size:7px}.num-btn{width:28px;height:28px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -72,42 +86,56 @@ h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
 <option value="hard">困难</option>
 </select></label>
 </div>
+<div class="toggle-row">
+<label class="toggle-label"><input type="checkbox" id="autoCheck" checked> 实时检查</label>
+</div>
 <div class="toolbar">
 <button class="tool-btn active" id="normalMode">填入</button>
 <button class="tool-btn" id="noteMode">笔记</button>
+<button class="tool-btn auto" id="autoNoteBtn">自动笔记</button>
 <button class="tool-btn undo" id="undoBtn">撤销</button>
 <button class="tool-btn hint" id="hintBtn">提示</button>
-<button class="tool-btn" id="hintCountBtn">提示 3/3</button>
+<span class="tool-btn" id="hintCountBtn" style="cursor:default;border:none;background:none;color:#94a3b8">3次</span>
 </div>
-<div class="num-pad">
+<div class="num-pad" id="numPad">
 <button class="num-btn" data-n="1">1</button><button class="num-btn" data-n="2">2</button><button class="num-btn" data-n="3">3</button>
 <button class="num-btn" data-n="4">4</button><button class="num-btn" data-n="5">5</button><button class="num-btn" data-n="6">6</button>
 <button class="num-btn" data-n="7">7</button><button class="num-btn" data-n="8">8</button><button class="num-btn" data-n="9">9</button>
 <button class="num-btn erase" id="eraseBtn">擦除</button>
 </div>
+<div class="grid-wrap">
 <div class="grid" id="grid"></div>
+</div>
 <div class="stats-row">
 <div class="stat-card"><div class="stat-label">难度</div><div class="stat-value" id="levelLabel">中等</div></div>
 <div class="stat-card"><div class="stat-label">计时</div><div class="stat-value" id="timerDisp">00:00</div></div>
 <div class="stat-card"><div class="stat-label">剩余</div><div class="stat-value" id="remainCount">0</div></div>
 </div>
+<div class="best-bar" id="bestBar"></div>
 <div class="grade-text" id="gradeText"></div>
 <div class="bottom-btns">
 <button class="btn primary" id="resetBtn">新游戏</button>
 </div>
 </div>
 <script>
-const STORAGE_KEY='sudoku_best';
+const STORAGE_KEY='sudoku_best_v2';
+const SAVE_KEY='sudoku_save';
 let solution=[],given=[],player=[],notes=[],history=[];
 let selectedRow=-1,selectedCol=-1,timer=null,seconds=0,noteMode=false,hintsLeft=3,hintsUsed=0;
-const grid=document.getElementById('grid'),timerEl=document.getElementById('timerDisp'),gradeText=document.getElementById('gradeText'),resetBtn=document.getElementById('resetBtn'),levelSelect=document.getElementById('levelSelect'),levelLabel=document.getElementById('levelLabel'),normalModeBtn=document.getElementById('normalMode'),noteModeBtn=document.getElementById('noteMode'),undoBtn=document.getElementById('undoBtn'),hintBtn=document.getElementById('hintBtn'),hintCountBtn=document.getElementById('hintCountBtn'),remainEl=document.getElementById('remainCount');
+let autoCheck=true,lastPlaced=null;
+const grid=document.getElementById('grid'),timerEl=document.getElementById('timerDisp'),gradeText=document.getElementById('gradeText'),resetBtn=document.getElementById('resetBtn'),levelSelect=document.getElementById('levelSelect'),levelLabel=document.getElementById('levelLabel'),normalModeBtn=document.getElementById('normalMode'),noteModeBtn=document.getElementById('noteMode'),undoBtn=document.getElementById('undoBtn'),hintBtn=document.getElementById('hintBtn'),hintCountBtn=document.getElementById('hintCountBtn'),remainEl=document.getElementById('remainCount'),autoNoteBtn=document.getElementById('autoNoteBtn'),autoCheckEl=document.getElementById('autoCheck'),bestBar=document.getElementById('bestBar'),numPad=document.getElementById('numPad');
 const levelNames={easy:'简单',medium:'中等',hard:'困难'};
 
 function loadBest(){const v=localStorage.getItem(STORAGE_KEY);return v?JSON.parse(v):null}
-function saveBest(level,secs){
-  const b=loadBest()||{};
-  if(!b[level]||secs<b[level]){b[level]=secs;localStorage.setItem(STORAGE_KEY,JSON.stringify(b))}
+function saveBest(level,secs){const b=loadBest()||{};if(!b[level]||secs<b[level]){b[level]=secs;localStorage.setItem(STORAGE_KEY,JSON.stringify(b))}renderBest()}
+function renderBest(){
+  const b=loadBest();if(!b){bestBar.innerHTML='';return}
+  let html='';for(const[l,t]of Object.entries(b)){if(t===undefined)continue;const m=Math.floor(t/60),s=t%60;html+='<span class="best-item">'+levelNames[l]+': <b>'+m+':'+String(s).padStart(2,'0')+'</b></span>'}
+  bestBar.innerHTML=html;
 }
+function saveGame(){localStorage.setItem(SAVE_KEY,JSON.stringify({solution,given,player,notes:notes.map(r=>r.map(s=>[...s])),seconds,level:levelSelect.value,hintsLeft,hintsUsed}))}
+function loadGame(){const v=localStorage.getItem(SAVE_KEY);if(!v)return null;try{return JSON.parse(v)}catch(e){return null}}
+function clearSave(){localStorage.removeItem(SAVE_KEY)}
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
@@ -118,16 +146,22 @@ function validPlacement(board,r,c,n){
   return true;
 }
 
+function getCandidates(board,r,c){
+  if(board[r][c]!==0)return[];
+  const used=new Set();
+  for(let i=0;i<9;i++){if(board[r][i])used.add(board[r][i]);if(board[i][c])used.add(board[i][c])}
+  const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++){const v=board[br+i][bc+j];if(v)used.add(v)}
+  const res=[];for(let n=1;n<=9;n++)if(!used.has(n))res.push(n);
+  return res;
+}
+
 function solveSudoku(board){
   for(let r=0;r<9;r++)for(let c=0;c<9;c++){
     if(board[r][c]===0){
       const nums=shuffle([1,2,3,4,5,6,7,8,9]);
       for(const n of nums){
-        if(validPlacement(board,r,c,n)){
-          board[r][c]=n;
-          if(solveSudoku(board))return true;
-          board[r][c]=0;
-        }
+        if(validPlacement(board,r,c,n)){board[r][c]=n;if(solveSudoku(board))return true;board[r][c]=0}
       }
       return false;
     }
@@ -139,30 +173,29 @@ function countSolutions(board,limit){
   let count=0;
   function solve(){
     if(count>=limit)return;
+    let bestR=-1,bestC=-1,bestCandidates=null,bestLen=10;
     for(let r=0;r<9;r++)for(let c=0;c<9;c++){
       if(board[r][c]===0){
-        for(let n=1;n<=9;n++){
-          if(validPlacement(board,r,c,n)){
-            board[r][c]=n;
-            solve();
-            board[r][c]=0;
-          }
-        }
-        return;
+        const cand=getCandidates(board,r,c);
+        if(cand.length===0)return;
+        if(cand.length<bestLen){bestLen=cand.length;bestR=r;bestC=c;bestCandidates=cand}
       }
     }
-    count++;
+    if(bestR===-1){count++;return}
+    for(const n of bestCandidates){
+      board[bestR][bestC]=n;solve();board[bestR][bestC]=0;
+      if(count>=limit)return;
+    }
   }
-  solve();
-  return count;
+  solve();return count;
 }
 
 function generatePuzzle(level){
   const board=Array(9).fill().map(()=>Array(9).fill(0));
   solveSudoku(board);
   for(let i=0;i<9;i++)solution[i]=[...board[i]];
-  const targets={easy:38,medium:46,hard:52};
-  const target=targets[level]||46;
+  const targets={easy:36,medium:44,hard:52};
+  const target=targets[level]||44;
   const positions=shuffle([...Array(81)].map((_,i)=>({r:Math.floor(i/9),c:i%9})));
   given=Array(9).fill().map(()=>Array(9).fill(true));
   let removed=0;
@@ -174,46 +207,83 @@ function generatePuzzle(level){
     if(countSolutions(test,2)===1){removed++;given[p.r][p.c]=false}
     else board[p.r][p.c]=backup;
   }
-  puzzle=board;
   player=Array(9).fill().map((_,r)=>[...board[r]]);
   notes=Array(9).fill().map(()=>Array(9).fill().map(()=>new Set()));
   history=[];
-  hintsLeft=3;hintsUsed=0;
-  hintCountBtn.textContent='提示 '+hintsLeft+'/3';
 }
 
-let puzzle;
-function init(){
-  const level=levelSelect.value;levelLabel.textContent=levelNames[level];
-  seconds=0;timerEl.textContent='00:00';gradeText.textContent='';
-  if(timer)clearInterval(timer);timer=null;
-  selectedRow=-1;selectedCol=-1;noteMode=false;
-  normalModeBtn.classList.add('active');noteModeBtn.classList.remove('active');
-  generatePuzzle(level);
-  updateRemain();updateUsedCounts();renderGrid();
+function initFromSave(save){
+  solution=save.solution;given=save.given;player=save.player;
+  notes=save.notes.map(r=>r.map(arr=>new Set(arr)));
+  seconds=save.seconds||0;hintsLeft=save.hintsLeft??3;hintsUsed=save.hintsUsed||0;
+  const m=Math.floor(seconds/60),s=seconds%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  hintCountBtn.textContent=hintsLeft+'次';
 }
 
-function startTimer(){if(timer)return;timer=setInterval(()=>{seconds++;const m=Math.floor(seconds/60),s=seconds%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')},1000)}
-
-function updateRemain(){
-  let rem=0;
-  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]===0)rem++;
-  remainEl.textContent=rem;
+function init(resume){
+  if(!resume){
+    const level=levelSelect.value;levelLabel.textContent=levelNames[level];
+    seconds=0;timerEl.textContent='00:00';gradeText.textContent='';
+    if(timer)clearInterval(timer);timer=null;
+    selectedRow=-1;selectedCol=-1;noteMode=false;hintsLeft=3;hintsUsed=0;
+    normalModeBtn.classList.add('active');noteModeBtn.classList.remove('active');
+    generatePuzzle(level);clearSave();
+  }else{
+    const level=levelSelect.value;levelLabel.textContent=levelNames[level];
+    gradeText.textContent='';selectedRow=-1;selectedCol=-1;noteMode=false;
+    normalModeBtn.classList.add('active');noteModeBtn.classList.remove('active');
+    if(timer)clearInterval(timer);timer=null;
+    startTimer();
+  }
+  hintCountBtn.textContent=hintsLeft+'次';
+  autoCheck=autoCheckEl.checked;
+  updateRemain();updateUsedCounts();renderGrid();renderBest();
 }
+
+function startTimer(){if(timer)return;timer=setInterval(()=>{seconds++;const m=Math.floor(seconds/60),s=seconds%60;timerEl.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');if(seconds%5===0)saveGame()},1000)}
+
+function updateRemain(){let rem=0;for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]===0)rem++;remainEl.textContent=rem}
 
 function updateUsedCounts(){
   const counts=Array(10).fill(0);
   for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]!==0)counts[player[r][c]]++;
-  document.querySelectorAll('.num-btn[data-n]').forEach(b=>{
-    b.classList.toggle('used',counts[parseInt(b.dataset.n)]>=9);
+  numPad.querySelectorAll('.num-btn[data-n]').forEach(b=>{
+    const n=parseInt(b.dataset.n);
+    b.classList.remove('used','done');
+    if(counts[n]>=9)b.classList.add('done');
+    else if(counts[n]>0){}
   });
 }
 
+function getConflicts(r,c,n){
+  if(n===0)return[];
+  const conflicts=[];
+  for(let i=0;i<9;i++){
+    if(i!==c&&player[r][i]===n)conflicts.push([r,i]);
+    if(i!==r&&player[i][c]===n)conflicts.push([i,c]);
+  }
+  const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
+    const nr=br+i,nc=bc+j;
+    if(nr!==r||nc!==c)if(player[nr][nc]===n)conflicts.push([nr,nc]);
+  }
+  return conflicts;
+}
+
+function isRowComplete(r){for(let c=0;c<9;c++)if(player[r][c]!==solution[r][c])return false;return true}
+function isColComplete(c){for(let r=0;r<9;r++)if(player[r][c]!==solution[r][c])return false;return true}
+function isBoxComplete(br,bc){for(let r=br;r<br+3;r++)for(let c=bc;c<bc+3;c++)if(player[r][c]!==solution[r][c])return false;return true}
+
 function renderGrid(){
   grid.innerHTML='';
-  const size=Math.min(42,(window.innerWidth-36)/9);
+  const size=Math.min(44,(window.innerWidth-40)/9);
   const selNum=selectedRow>=0?player[selectedRow][selectedCol]:0;
   const selBox=selectedRow>=0?Math.floor(selectedRow/3)*3+Math.floor(selectedCol/3):-1;
+  const conflictSet=new Set();
+  if(selectedRow>=0&&selNum>0){
+    getConflicts(selectedRow,selectedCol,selNum).forEach(([r,c])=>conflictSet.add(r*9+c));
+    conflictSet.add(selectedRow*9+selectedCol);
+  }
   for(let r=0;r<9;r++)for(let c=0;c<9;c++){
     const el=document.createElement('div');el.className='cell';
     el.style.width=el.style.height=size+'px';
@@ -221,15 +291,19 @@ function renderGrid(){
     if(r%3===2&&r<8)el.classList.add('bb');
     if(given[r][c])el.classList.add('given');
     else el.classList.add('user');
-    if(r===selectedRow&&c===selectedCol){el.classList.add('selected')}
+    if(r===selectedRow&&c===selectedCol)el.classList.add('selected');
     else if(selectedRow>=0){
       if(r===selectedRow||c===selectedCol)el.classList.add('same-row');
       if(Math.floor(r/3)*3+Math.floor(c/3)===selBox)el.classList.add('same-box');
     }
     if(selNum!==0&&player[r][c]===selNum&&!(r===selectedRow&&c===selectedCol))el.classList.add('same-num');
-    if(!given[r][c]&&player[r][c]!==0&&!validPlacement(player,r,c,player[r][c]))el.classList.add('error');
+    if(autoCheck&&conflictSet.has(r*9+c))el.classList.add('conflict');
     if(player[r][c]!==0){
       el.textContent=player[r][c];
+      if(lastPlaced&&lastPlaced.r===r&&lastPlaced.c===c){
+        const span=document.createElement('span');span.className='pop';span.textContent=player[r][c];el.textContent='';el.appendChild(span);
+        lastPlaced=null;
+      }
     }else if(notes[r][c].size>0){
       const nd=document.createElement('div');nd.className='notes';
       for(let n=1;n<=9;n++){const sp=document.createElement('span');sp.textContent=notes[r][c].has(n)?n:'';nd.appendChild(sp)}
@@ -240,9 +314,27 @@ function renderGrid(){
   }
 }
 
-function selectCell(r,c){
-  if(!timer)startTimer();
-  selectedRow=r;selectedCol=c;renderGrid();
+function selectCell(r,c){if(!timer)startTimer();selectedRow=r;selectedCol=c;renderGrid()}
+
+function clearNotesForNum(n,r,c){
+  if(n===0)return;
+  for(let i=0;i<9;i++){
+    notes[r][i].delete(n);notes[i][c].delete(n);
+  }
+  const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+  for(let i=0;i<3;i++)for(let j=0;j<3;j++)notes[br+i][bc+j].delete(n);
+}
+
+function autoFillNotes(){
+  let filled=0;
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    if(player[r][c]===0&&notes[r][c].size===0){
+      const cand=getCandidates(player,r,c);
+      if(cand.length===1){notes[r][c].add(cand[0]);filled++}
+      else if(cand.length>0&&cand.length<=3){cand.forEach(n=>notes[r][c].add(n));filled++}
+    }
+  }
+  if(filled>0){renderGrid();saveGame()}
 }
 
 function placeNum(n){
@@ -257,22 +349,42 @@ function placeNum(n){
   }else{
     history.push({type:'place',r,c,prev:player[r][c],prevNotes:new Set(notes[r][c])});
     player[r][c]=n;notes[r][c]=new Set();
-    if(n>0){for(let i=0;i<9;i++){notes[r][i].delete(n);notes[i][c].delete(n)}}
+    if(n>0){
+      clearNotesForNum(n,r,c);
+      lastPlaced={r,c};
+    }
   }
-  updateUsedCounts();updateRemain();renderGrid();
+  updateUsedCounts();updateRemain();renderGrid();saveGame();
+  if(n>0){
+    if(isRowComplete(r))flashLine('row',r);
+    if(isColComplete(c))flashLine('col',c);
+    if(isBoxComplete(Math.floor(r/3)*3,Math.floor(c/3)*3))flashLine('box',Math.floor(r/3)*3,Math.floor(c/3)*3);
+  }
   if(checkWin())showWin();
+}
+
+function flashLine(type,arg1,arg2){
+  setTimeout(()=>{
+    const cells=grid.children;
+    for(let i=0;i<81;i++){
+      const r=Math.floor(i/9),c=i%9;
+      let match=false;
+      if(type==='row'&&r===arg1)match=true;
+      if(type==='col'&&c===arg1)match=true;
+      if(type==='box'&&Math.floor(r/3)*3===arg1&&Math.floor(c/3)*3===arg2)match=true;
+      if(match)cells[i].classList.add('complete');
+    }
+    setTimeout(()=>{for(const cell of grid.children)cell.classList.remove('complete')},600);
+  },100);
 }
 
 function undo(){
   if(!history.length)return;
   const h=history.pop();
-  if(h.type==='note'){
-    notes[h.r][h.c]=h.prev;
-  }else{
-    player[h.r][h.c]=h.prev;notes[h.r][h.c]=h.prevNotes;
-  }
+  if(h.type==='note'){notes[h.r][h.c]=h.prev}
+  else{player[h.r][h.c]=h.prev;notes[h.r][h.c]=h.prevNotes}
   selectedRow=h.r;selectedCol=h.c;
-  updateUsedCounts();updateRemain();renderGrid();
+  updateUsedCounts();updateRemain();renderGrid();saveGame();
 }
 
 function useHint(){
@@ -281,20 +393,17 @@ function useHint(){
   history.push({type:'place',r:selectedRow,c:selectedCol,prev:player[selectedRow][selectedCol],prevNotes:new Set(notes[selectedRow][selectedCol])});
   player[selectedRow][selectedCol]=solution[selectedRow][selectedCol];
   notes[selectedRow][selectedCol]=new Set();
-  hintsLeft--;hintsUsed++;
-  hintCountBtn.textContent='提示 '+hintsLeft+'/3';
-  updateUsedCounts();updateRemain();renderGrid();
+  clearNotesForNum(solution[selectedRow][selectedCol],selectedRow,selectedCol);
+  hintsLeft--;hintsUsed++;hintCountBtn.textContent=hintsLeft+'次';
+  updateUsedCounts();updateRemain();renderGrid();saveGame();
   if(checkWin())showWin();
 }
 
-function checkWin(){
-  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]!==solution[r][c])return false;
-  return true;
-}
+function checkWin(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(player[r][c]!==solution[r][c])return false;return true}
 
 function showWin(){
-  clearInterval(timer);timer=null;
-  saveBest(levelSelect.value,seconds);
+  clearInterval(timer);timer=null;clearSave();
+  const level=levelSelect.value;saveBest(level,seconds);
   const m=Math.floor(seconds/60),s=seconds%60,timeStr=m>0?m+'分'+s+'秒':s+'秒';
   const overlay=document.createElement('div');overlay.className='win-overlay';
   overlay.innerHTML='<div class="win-box"><h2>🎉 完成!</h2><p>'+timeStr+(hintsUsed>0?' · 使用了 '+(3-hintsLeft)+' 个提示':'')+'</p><button onclick="this.closest(\'.win-overlay\').remove()">确定</button></div>';
@@ -307,27 +416,32 @@ normalModeBtn.addEventListener('click',()=>{noteMode=false;normalModeBtn.classLi
 noteModeBtn.addEventListener('click',()=>{noteMode=true;noteModeBtn.classList.add('active');normalModeBtn.classList.remove('active')});
 undoBtn.addEventListener('click',undo);
 hintBtn.addEventListener('click',useHint);
+autoNoteBtn.addEventListener('click',autoFillNotes);
+autoCheckEl.addEventListener('change',()=>{autoCheck=autoCheckEl.checked;renderGrid()});
 
-document.querySelectorAll('.num-btn[data-n]').forEach(b=>{
-  b.addEventListener('click',()=>placeNum(parseInt(b.dataset.n)));
-});
+numPad.querySelectorAll('.num-btn[data-n]').forEach(b=>{b.addEventListener('click',()=>placeNum(parseInt(b.dataset.n)))});
 document.getElementById('eraseBtn').addEventListener('click',()=>placeNum(0));
 
 document.addEventListener('keydown',(e)=>{
   const n=parseInt(e.key);
-  if(n>=1&&n<=9){placeNum(n)}
-  else if(e.key==='Backspace'||e.key==='Delete'||e.key==='0'){placeNum(0)}
+  if(n>=1&&n<=9)placeNum(n);
+  else if(e.key==='Backspace'||e.key==='Delete'||e.key==='0')placeNum(0);
   else if(e.key==='z'&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo()}
   else if(e.key==='n'){noteMode=!noteMode;normalModeBtn.classList.toggle('active',!noteMode);noteModeBtn.classList.toggle('active',noteMode)}
-  else if(e.key==='ArrowUp'&&selectedRow>0){selectCell(selectedRow-1,selectedCol)}
-  else if(e.key==='ArrowDown'&&selectedRow<8){selectCell(selectedRow+1,selectedCol)}
-  else if(e.key==='ArrowLeft'&&selectedCol>0){selectCell(selectedRow,selectedCol-1)}
-  else if(e.key==='ArrowRight'&&selectedCol<8){selectCell(selectedRow,selectedCol+1)}
+  else if(e.key==='ArrowUp'&&selectedRow>0)selectCell(selectedRow-1,selectedCol);
+  else if(e.key==='ArrowDown'&&selectedRow<8)selectCell(selectedRow+1,selectedCol);
+  else if(e.key==='ArrowLeft'&&selectedCol>0)selectCell(selectedRow,selectedCol-1);
+  else if(e.key==='ArrowRight'&&selectedCol<8)selectCell(selectedRow,selectedCol+1);
 });
 
-resetBtn.addEventListener('click',init);
-levelSelect.addEventListener('change',init);
-init();
+resetBtn.addEventListener('click',()=>init(false));
+levelSelect.addEventListener('change',()=>init(false));
+
+const savedGame=loadGame();
+if(savedGame&&savedGame.solution){
+  levelSelect.value=savedGame.level||'medium';
+  initFromSave(savedGame);init(true);
+}else{init(false)}
 </script>
 </body>
 </html>
