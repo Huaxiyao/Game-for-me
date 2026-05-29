@@ -759,24 +759,34 @@ document.querySelectorAll('.diff-btn').forEach(btn => {
 
 // 高级面板切换
 document.addEventListener('keydown', (e) => {
+  // Tab 键：仅在未打字时展开/收起高级面板
   if (e.key === 'Tab' && !started) {
     e.preventDefault();
     panelVisible = !panelVisible;
     advancedPanel.classList.toggle('visible', panelVisible);
   }
-  if (e.key === 'Escape' && panelVisible) {
+  // Escape 键：仅在未打字且面板展开时收起
+  if (e.key === 'Escape' && panelVisible && !started) {
     panelVisible = false;
     advancedPanel.classList.remove('visible');
   }
-  // Enter 键：未开始时开始测试；random 模式打字中重新开始
+  // Enter 键：未开始时开始测试；打字过程中重新开始
   if (e.key === 'Enter') {
     e.preventDefault();
     if (!started) {
       start();
-    } else if (mode === 'random') {
+    } else {
       resetState();
       start();
     }
+  }
+});
+
+// 防误触：打字过程中保持输入框焦点
+document.addEventListener('mousedown', (e) => {
+  if (started && !completed && e.target !== textInput) {
+    e.preventDefault();
+    textInput.focus();
   }
 });
 
