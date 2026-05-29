@@ -139,6 +139,26 @@ body {
   font-size: 12px;
   color: #94a3b8;
   margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.start-btn {
+  padding: 6px 16px;
+  border: 1.5px solid #818cf8;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #eef2ff;
+  color: #6366f1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.start-btn:hover {
+  background: #6366f1;
+  color: #fff;
 }
 
 /* 高级选项面板 */
@@ -263,6 +283,15 @@ body {
     border-color: #818cf8;
     color: #a5b4fc;
   }
+  .start-btn {
+    background: #1e1b4b;
+    border-color: #818cf8;
+    color: #a5b4fc;
+  }
+  .start-btn:hover {
+    background: #6366f1;
+    color: #fff;
+  }
   .stat-value { color: #e2e8f0; }
   .advanced-panel { background: #0f172a; border-color: #334155; }
   .panel-tab { color: #94a3b8; }
@@ -328,7 +357,8 @@ body {
 
   <!-- 快捷键提示 -->
   <div class="shortcuts">
-    按 Enter 重新开始 · Tab 展开高级选项
+    <button class="start-btn" id="startBtn">开始测试</button>
+    <span style="margin-left:8px;">按 Enter 重新开始 · Tab 展开高级选项</span>
   </div>
 
   <!-- 高级选项面板 -->
@@ -519,7 +549,7 @@ function showResults() {
   textInput.disabled = true;
   renderDisplay();
 
-  saveHistory(wpm, acc);
+  saveHistory(wpm, acc, correct);
 }
 
 // 开始测试
@@ -553,7 +583,7 @@ function start() {
 }
 
 // 保存历史
-function saveHistory(wpm, acc) {
+function saveHistory(wpm, acc, correctCount) {
   const history = JSON.parse(localStorage.getItem('typingHistory') || '[]');
   history.unshift({
     id: new Date().toISOString(),
@@ -564,7 +594,7 @@ function saveHistory(wpm, acc) {
     wpm: wpm,
     accuracy: acc,
     duration: Math.round((Date.now() - startTime) / 1000),
-    correctChars: wpm,
+    correctChars: correctCount,
     totalChars: target.length
   });
 
@@ -738,6 +768,9 @@ document.getElementById('applyCustom').addEventListener('click', () => {
     advancedPanel.classList.remove('visible');
   }
 });
+
+// 开始测试按钮
+document.getElementById('startBtn').addEventListener('click', start);
 
 // 初始化
 target = pickText();
