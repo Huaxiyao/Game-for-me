@@ -717,7 +717,12 @@ function startLevel() {
   numInput.disabled = true;
   submitBtn.disabled = true;
 
-  // 显示数字
+  // 动态调整字号和间距
+  const fontSize = Math.max(28, 54 - (digits - 3) * 4);
+  const letterSpacing = Math.max(2, 6 - (digits - 3) * 0.7);
+  numDisplay.style.fontSize = fontSize + 'px';
+  numDisplay.style.letterSpacing = letterSpacing + 'px';
+
   setPhase('showing');
   numDisplay.textContent = currentNum;
   numHint.textContent = '记住这个数字';
