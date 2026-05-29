@@ -755,9 +755,11 @@ document.getElementById('clearHistory').addEventListener('click', () => {
 document.getElementById('applyCustom').addEventListener('click', () => {
   const customText = document.getElementById('customText').value.trim();
   if (customText) {
+    resetState();
     customTextValue = customText;
     useCustomText = true;
-    resetState();
+    target = pickText();
+    renderDisplay();
     panelVisible = false;
     advancedPanel.classList.remove('visible');
   }
