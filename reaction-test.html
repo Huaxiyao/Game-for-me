@@ -213,17 +213,12 @@ body {
   to { opacity: 1; }
 }
 
-/* ===== 闪烁页 ===== */
-.blink-screen { background: var(--test-bg); }
-.blink-text {
+/* ===== 准备页 ===== */
+.ready-screen { background: var(--test-bg); }
+.ready-text {
   font-size: 32px;
   font-weight: 600;
-  color: rgba(255,255,255,0.5);
-  animation: blink 1.2s ease-in-out infinite;
-}
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.15; }
+  color: rgba(255,255,255,0.55);
 }
 
 /* ===== 测试页 ===== */
@@ -246,21 +241,29 @@ body {
   height: 280px;
   border-radius: 50%;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.2s;
-  border: 8px solid rgba(0,0,0,0.12);
+  transition: transform 0.15s;
+  position: relative;
+}
+.test-circle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(255,255,255,0.18) 0%, transparent 50%);
+  pointer-events: none;
 }
 .test-circle.waiting {
-  background: #ef4444;
-  box-shadow: 0 0 60px rgba(239,68,68,0.25);
+  background: radial-gradient(circle at 35% 35%, #f87171 0%, #dc2626 50%, #b91c1c 100%);
+  box-shadow: 0 0 80px rgba(220,38,38,0.3), inset 0 -4px 12px rgba(0,0,0,0.15);
 }
 .test-circle.ready {
-  background: #22c55e;
-  box-shadow: 0 0 80px rgba(34,197,94,0.35);
+  background: radial-gradient(circle at 35% 35%, #4ade80 0%, #16a34a 50%, #15803d 100%);
+  box-shadow: 0 0 100px rgba(22,163,74,0.4), inset 0 -4px 12px rgba(0,0,0,0.15);
   animation: pulse-green 0.3s ease-out;
 }
 .test-circle.early {
-  background: #f59e0b;
-  box-shadow: 0 0 60px rgba(245,158,11,0.25);
+  background: radial-gradient(circle at 35% 35%, #fbbf24 0%, #d97706 50%, #b45309 100%);
+  box-shadow: 0 0 80px rgba(217,119,6,0.3), inset 0 -4px 12px rgba(0,0,0,0.15);
   animation: shake 0.35s;
 }
 @keyframes pulse-green {
@@ -519,7 +522,7 @@ function render() {
   if (countdownRaf) { cancelAnimationFrame(countdownRaf); countdownRaf = null; }
   clearClick();
   if (state === 'landing') renderLanding();
-  else if (state === 'blink') renderBlink();
+  else if (state === 'ready-page') renderReady();
   else if (state === 'waiting' || state === 'ready' || state === 'early') renderTest();
   else if (state === 'countdown') renderCountdown();
   else if (state === 'results') renderResults();
@@ -557,14 +560,14 @@ function renderLanding() {
   });
   document.getElementById('startBtn').addEventListener('click', (e) => {
     e.stopPropagation();
-    state = 'blink';
+    state = 'ready-page';
     render();
   });
 }
 
-/* ===== 闪烁页 ===== */
-function renderBlink() {
-  app.innerHTML = `<div class="fullscreen blink-screen"><div class="blink-text">点任何地方开始测试</div></div>`;
+/* ===== 准备页 ===== */
+function renderReady() {
+  app.innerHTML = `<div class="fullscreen ready-screen"><div class="ready-text">点任何地方开始测试</div></div>`;
   setClick((e) => { e.preventDefault(); beginTest(); });
 }
 
@@ -587,7 +590,7 @@ function startNextRound() {
     state = 'ready';
     readyAt = performance.now();
     render();
-  }, 600 + Math.random() * 2800);
+  }, 500 + Math.random() * 2000);
 }
 
 /* ===== 测试中 ===== */
@@ -615,7 +618,7 @@ function handleClick(ts) {
     earlyCount++;
     state = 'early';
     render();
-    cancelTimer = rafTimeout(() => startNextRound(), 800);
+    cancelTimer = rafTimeout(() => startNextRound(), 600);
     return;
   }
   if (state === 'ready') {
@@ -824,7 +827,7 @@ function renderResults() {
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault();
-    if (state === 'blink') beginTest();
+    if (state === 'ready-page') beginTest();
     else if (state === 'waiting' || state === 'ready' || state === 'early') handleClick(e.timeStamp);
   }
 });
