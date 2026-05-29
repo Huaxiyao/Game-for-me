@@ -394,7 +394,10 @@ let started = false;
 let completed = false;
 let startTime = 0;
 let timer = null;
+let countdownTimer = null;
 let panelVisible = false;
+let useCustomText = false;
+let customTextValue = '';
 
 // DOM 元素
 const textDisplay = document.getElementById('textDisplay');
@@ -455,8 +458,19 @@ const wordPool = {
   en: ['the', 'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog', 'life', 'what', 'happens', 'you', 'while', 'busy', 'making', 'other', 'plans', 'only', 'way', 'great', 'work', 'love', 'keep', 'learning', 'every', 'single', 'day', 'success', 'final', 'failure', 'fatal', 'courage', 'continue', 'counts', 'perseverance', 'key', 'never', 'give', 'up', 'stay', 'focused', 'moving', 'forward']
 };
 
+// HTML 转义
+function escapeHtml(char) {
+  if (char === '<') return '&lt;';
+  if (char === '>') return '&gt;';
+  if (char === '&') return '&amp;';
+  return char;
+}
+
 // 选择文本
 function pickText() {
+  if (useCustomText && customTextValue) {
+    return customTextValue;
+  }
   if (mode === 'random') {
     const pool = wordPool[lang];
     const count = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
@@ -486,7 +500,7 @@ function renderDisplay() {
     } else if (i === val.length) {
       cls = 'current';
     }
-    html += '<span class="' + cls + '">' + target[i] + '</span>';
+    html += '<span class="' + cls + '">' + escapeHtml(target[i]) + '</span>';
   }
   textDisplay.innerHTML = html;
 }
@@ -572,7 +586,8 @@ function start() {
 
   // 倒计时模式
   if (mode === 'countdown') {
-    setTimeout(() => {
+    if (countdownTimer) clearTimeout(countdownTimer);
+    countdownTimer = setTimeout(() => {
       if (started && !completed) {
         completed = true;
         clearInterval(timer);
@@ -649,6 +664,24 @@ function renderLeaderboard() {
   `).join('');
 }
 
+// 重置状态
+function resetState() {
+  if (started) {
+    clearInterval(timer);
+    if (countdownTimer) clearTimeout(countdownTimer);
+    started = false;
+    completed = false;
+  }
+  useCustomText = false;
+  textInput.value = '';
+  textInput.disabled = true;
+  wpmEl.textContent = '0';
+  accuracyEl.textContent = '--';
+  timerEl.textContent = '0s';
+  target = pickText();
+  renderDisplay();
+}
+
 // 事件监听
 textInput.addEventListener('input', () => {
   if (started && !completed) {
@@ -663,17 +696,7 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
     lang = btn.dataset.lang;
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    if (started) {
-      clearInterval(timer);
-      started = false;
-    }
-    textInput.value = '';
-    textInput.disabled = true;
-    wpmEl.textContent = '0';
-    accuracyEl.textContent = '--';
-    timerEl.textContent = '0s';
-    target = pickText();
-    renderDisplay();
+    resetState();
   });
 });
 
@@ -682,17 +705,7 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
     mode = btn.dataset.mode;
     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    if (started) {
-      clearInterval(timer);
-      started = false;
-    }
-    textInput.value = '';
-    textInput.disabled = true;
-    wpmEl.textContent = '0';
-    accuracyEl.textContent = '--';
-    timerEl.textContent = '0s';
-    target = pickText();
-    renderDisplay();
+    resetState();
   });
 });
 
@@ -701,17 +714,7 @@ document.querySelectorAll('.diff-btn').forEach(btn => {
     difficulty = btn.dataset.diff;
     document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    if (started) {
-      clearInterval(timer);
-      started = false;
-    }
-    textInput.value = '';
-    textInput.disabled = true;
-    wpmEl.textContent = '0';
-    accuracyEl.textContent = '--';
-    timerEl.textContent = '0s';
-    target = pickText();
-    renderDisplay();
+    resetState();
   });
 });
 
@@ -752,18 +755,9 @@ document.getElementById('clearHistory').addEventListener('click', () => {
 document.getElementById('applyCustom').addEventListener('click', () => {
   const customText = document.getElementById('customText').value.trim();
   if (customText) {
-    target = customText;
-    if (started) {
-      clearInterval(timer);
-      started = false;
-    }
-    textInput.value = '';
-    textInput.disabled = true;
-    wpmEl.textContent = '0';
-    accuracyEl.textContent = '--';
-    timerEl.textContent = '0s';
-    renderDisplay();
-
+    customTextValue = customText;
+    useCustomText = true;
+    resetState();
     panelVisible = false;
     advancedPanel.classList.remove('visible');
   }
