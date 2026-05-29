@@ -351,7 +351,7 @@ body {
     <div class="stat-item">
       <div class="stat-label">时间</div>
       <div class="stat-value" id="timer">0s</div>
-      <div class="stat-unit">已用</div>
+      <div class="stat-unit" id="timerUnit">已用</div>
     </div>
   </div>
 
@@ -406,6 +406,7 @@ const wpmEl = document.getElementById('wpm');
 const accuracyEl = document.getElementById('accuracy');
 const timerEl = document.getElementById('timer');
 const wpmUnitEl = document.getElementById('wpmUnit');
+const timerUnitEl = document.getElementById('timerUnit');
 const advancedPanel = document.getElementById('advancedPanel');
 
 // 文本数据
@@ -559,8 +560,14 @@ function checkComplete() {
     return;
   }
 
-  // countdown 模式由计时器控制结束
-  if (mode === 'countdown') return;
+  // countdown 模式下，输入到末尾时自动扩展文本
+  if (mode === 'countdown') {
+    if (textInput.value.length >= target.length - 5) {
+      target += generateMoreWords();
+      renderDisplay();
+    }
+    return;
+  }
 
   // text 模式：输入完文本后自动结束
   if (textInput.value.length >= target.length) {
@@ -607,6 +614,7 @@ function start() {
   accuracyEl.textContent = '--';
   // 倒计时模式显示 60s，其他模式显示 0s
   timerEl.textContent = mode === 'countdown' ? '60s' : '0s';
+  timerUnitEl.textContent = mode === 'countdown' ? '剩余' : '已用';
 
   startTime = Date.now();
   timer = setInterval(updateStats, 200);
@@ -708,6 +716,7 @@ function resetState() {
   accuracyEl.textContent = '--';
   // 倒计时模式显示 60s，其他模式显示 0s
   timerEl.textContent = mode === 'countdown' ? '60s' : '0s';
+  timerUnitEl.textContent = mode === 'countdown' ? '剩余' : '已用';
   target = pickText();
   renderDisplay();
 }
