@@ -1,657 +1,835 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>反应速度测试</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0a0a0a;
+  --card: #1a1d23;
+  --card-border: rgba(255,255,255,0.06);
+  --text: #f1f5f9;
+  --text-dim: #64748b;
+  --text-muted: #475569;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --green-header: #276732;
+  --btn-bg: #2a2d35;
+  --btn-hover: #353840;
+  --btn-text: #888;
+  --desc-text: #999;
+  --test-bg: #4a6fa5;
+  --countdown-bg: #0f1219;
+  --chart-bg: #1a1d23;
+  --stat-best: #22c55e;
+  --stat-worst: #ef4444;
+  --hl-red: #dc2626;
+  --hl-green: #16a34a;
+}
+[data-theme="light"] {
+  --bg: #e8edf5;
+  --card: #ffffff;
+  --card-border: rgba(0,0,0,0.08);
+  --text: #1e293b;
+  --text-dim: #64748b;
+  --text-muted: #94a3b8;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --green-header: #16a34a;
+  --btn-bg: #f1f5f9;
+  --btn-hover: #e2e8f0;
+  --btn-text: #64748b;
+  --desc-text: #64748b;
+  --test-bg: #4a6fa5;
+  --countdown-bg: #f1f5f9;
+  --chart-bg: #f8fafc;
+  --stat-best: #16a34a;
+  --stat-worst: #dc2626;
+  --hl-red: #dc2626;
+  --hl-green: #16a34a;
+}
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   min-height: 100vh;
-  background: linear-gradient(145deg, #f0f4ff 0%, #e8edf5 100%);
+  background: var(--bg);
   display: flex;
   justify-content: center;
   align-items: center;
   user-select: none;
+  transition: background 0.3s;
 }
 .container {
-  text-align: center;
-  max-width: 420px;
   width: 100%;
-  padding: 36px 24px 28px;
+  max-width: 720px;
+  padding: 20px;
 }
-h1 {
-  font-size: 22px;
-  font-weight: 700;
-  color: #1e293b;
-  letter-spacing: -0.3px;
-  margin-bottom: 2px;
-}
-.subtitle {
-  font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 16px;
-}
-.controls-row {
+
+/* ===== 主题切换 ===== */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 200;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--card-border);
+  background: var(--card);
+  color: var(--text-dim);
+  font-size: 20px;
+  cursor: pointer;
   display: flex;
   justify-content: center;
-  gap: 12px;
   align-items: center;
-  margin-bottom: 24px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
 }
-.controls-row label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #64748b;
+.theme-toggle:hover {
+  background: var(--btn-hover);
+  color: var(--text);
+}
+
+/* ===== 首页卡片 ===== */
+.landing-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border);
+  transition: background 0.3s, border-color 0.3s;
+}
+.landing-header {
+  background: var(--green-header);
+  padding: 18px 24px;
+  text-align: center;
+  transition: background 0.3s;
+}
+.landing-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+.landing-body {
+  padding: 28px 32px 36px;
+}
+.attempts-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
 }
-.controls-row select {
-  padding: 4px 8px 4px 10px;
-  border: 1.5px solid #e2e8f0;
+.attempts-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-right: 4px;
+  transition: color 0.3s;
+}
+.attempt-btn {
+  min-width: 42px;
+  height: 38px;
+  padding: 0 10px;
+  border: none;
   border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  background: #fff;
-  color: #334155;
-  outline: none;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all 0.15s;
 }
-.controls-row select:focus { border-color: #818cf8; }
-.circle-wrap {
-  position: relative;
-  width: 220px;
-  height: 220px;
-  margin: 0 auto 18px;
+.attempt-btn:hover {
+  background: var(--btn-hover);
+  color: var(--text);
 }
-.circle-wrap::before {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, #e2e8f0, #cbd5e1, #e2e8f0);
-  opacity: 0.5;
-  z-index: 0;
+.attempt-btn.active {
+  background: var(--accent);
+  color: #fff;
 }
-.circle-area {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
+.game-desc {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--desc-text);
+  margin-bottom: 8px;
+  transition: color 0.3s;
+}
+.game-desc .hl-red {
+  background: var(--hl-red);
+  color: #fff;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.game-desc .hl-green {
+  background: var(--hl-green);
+  color: #fff;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.game-desc strong { color: var(--text); }
+.game-desc .dim { color: var(--text-muted); font-size: 14px; }
+.start-btn {
+  display: block;
+  width: 200px;
+  margin: 28px auto 0;
+  padding: 14px 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+.start-btn:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 24px rgba(59,130,246,0.4);
+  transform: translateY(-1px);
+}
+
+/* ===== 全屏页面通用 ===== */
+.fullscreen {
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  z-index: 100;
+  opacity: 0;
+  animation: fadeIn 0.25s forwards;
+}
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* ===== 闪烁页 ===== */
+.blink-screen { background: var(--test-bg); }
+.blink-text {
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  animation: blink 1.2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+
+/* ===== 测试页 ===== */
+.test-screen { background: var(--test-bg); }
+.test-status {
+  font-size: 32px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 40px;
+  letter-spacing: 0.5px;
+}
+.test-round {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+}
+.test-circle {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
   cursor: pointer;
-  z-index: 1;
   transition: transform 0.15s, box-shadow 0.2s;
-  will-change: transform;
+  border: 8px solid rgba(0,0,0,0.12);
 }
-.circle-area:active { transform: scale(0.97); }
-.circle-area.idle {
-  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-  box-shadow: 0 12px 40px rgba(99,102,241,0.30);
+.test-circle.waiting {
+  background: #ef4444;
+  box-shadow: 0 0 60px rgba(239,68,68,0.25);
 }
-.circle-area.idle::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
-  pointer-events: none;
+.test-circle.ready {
+  background: #22c55e;
+  box-shadow: 0 0 80px rgba(34,197,94,0.35);
+  animation: pulse-green 0.3s ease-out;
 }
-.circle-area.waiting {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-  box-shadow: 0 12px 40px rgba(239,68,68,0.30);
+.test-circle.early {
+  background: #f59e0b;
+  box-shadow: 0 0 60px rgba(245,158,11,0.25);
+  animation: shake 0.35s;
 }
-.circle-area.waiting::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, transparent 50%);
-  pointer-events: none;
-}
-.circle-area.ready {
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-  box-shadow: 0 12px 48px rgba(16,185,129,0.35);
-  animation: pulse-ready 0.8s ease-out;
-}
-.circle-area.ready::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
-  pointer-events: none;
-}
-.circle-area.clicked-early {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 0 12px 40px rgba(245,158,11,0.30);
-  animation: shake 0.4s;
-}
-.circle-area.finished {
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-  box-shadow: 0 12px 40px rgba(139,92,246,0.30);
-}
-.circle-area.finished::after {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
-  pointer-events: none;
-}
-@keyframes pulse-ready {
-  0% { transform: scale(0.96); }
-  40% { transform: scale(1.02); }
+@keyframes pulse-green {
+  0% { transform: scale(0.94); }
+  60% { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
 @keyframes shake {
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(3px); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
 }
-.circle-text {
-  font-size: 17px;
+.test-hint {
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 32px;
+}
+
+/* ===== 倒计时页 ===== */
+.countdown-screen { background: var(--countdown-bg); }
+.countdown-number {
+  font-size: 80px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s;
+}
+.countdown-unit {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+.countdown-round {
+  font-size: 16px;
   font-weight: 600;
-  color: #fff;
-  letter-spacing: 0.3px;
-  position: relative;
-  z-index: 1;
+  color: var(--text-dim);
+  margin-top: 8px;
 }
-.result-big {
+.countdown-timer {
   font-size: 48px;
   font-weight: 800;
-  color: #fff;
-  line-height: 1;
-  letter-spacing: -1px;
-  position: relative;
-  z-index: 1;
-}
-.result-unit-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.75);
-  position: relative;
-  z-index: 1;
-  margin-top: 2px;
-}
-.progress-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.progress-dot {
-  width: 10px;
-  height: 10px;
+  color: var(--accent);
+  margin-top: 20px;
+  font-variant-numeric: tabular-nums;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  background: #e2e8f0;
-  transition: all 0.25s;
-}
-.progress-dot.done {
-  background: #10b981;
-  box-shadow: 0 0 6px rgba(16,185,129,0.25);
-}
-.progress-dot.early {
-  background: #f59e0b;
-}
-.stats-row {
+  border: 4px solid rgba(59,130,246,0.25);
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 16px;
+  align-items: center;
 }
-.stat-card {
-  background: rgba(255,255,255,0.75);
-  backdrop-filter: blur(8px);
-  border-radius: 14px;
-  padding: 10px 16px;
-  min-width: 80px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-  border: 1px solid rgba(255,255,255,0.8);
+.countdown-timer-bar {
+  width: 200px;
+  height: 5px;
+  background: rgba(128,128,128,0.15);
+  border-radius: 3px;
+  margin-top: 14px;
+  overflow: hidden;
 }
-.stat-label {
-  font-size: 10px;
+.countdown-timer-bar-inner {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.05s linear;
+}
+.countdown-chart-wrap {
+  margin-top: 24px;
+  width: 400px;
+  max-width: 90vw;
+  background: var(--chart-bg);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--card-border);
+  transition: background 0.3s, border-color 0.3s;
+}
+.countdown-chart-wrap canvas { width: 100%; height: 160px; }
+
+/* ===== 结果页 ===== */
+.results-screen { background: var(--bg); }
+.results-card {
+  width: 720px;
+  max-width: 92vw;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 36px 40px;
+  display: flex;
+  gap: 36px;
+  align-items: flex-start;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border);
+  transition: background 0.3s, border-color 0.3s;
+}
+.results-left { flex: 0 0 240px; }
+.results-avg {
+  font-size: 80px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s;
+}
+.results-avg-unit {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text-dim);
+  margin-left: 2px;
+}
+.results-grade {
+  margin-top: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.results-comment {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.results-stats-row {
+  display: flex;
+  gap: 18px;
+  margin-top: 20px;
+}
+.results-stat-item { text-align: left; }
+.results-stat-label {
+  font-size: 11px;
+  color: var(--text-dim);
   font-weight: 600;
-  color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   margin-bottom: 3px;
 }
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
+.results-stat-val {
+  font-size: 22px;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
-.stat-card.highlight .stat-value { color: #10b981; }
-.round-tags {
+.results-stat-val.best { color: var(--stat-best); }
+.results-stat-val.avg-c { color: var(--text); }
+.results-stat-val.worst { color: var(--stat-worst); }
+.results-rounds {
+  margin-top: 16px;
   display: flex;
-  justify-content: center;
-  gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  gap: 6px;
 }
 .round-tag {
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(4px);
-  color: #64748b;
-  padding: 5px 12px;
-  border-radius: 16px;
+  padding: 4px 10px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 500;
-  border: 1px solid rgba(255,255,255,0.6);
-}
-.round-tag.best {
-  background: #d1fae5;
-  color: #059669;
-  border-color: #a7f3d0;
-  font-weight: 700;
-}
-.round-tag.worst {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fecaca;
-}
-.grade-text {
-  font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 16px;
+  background: var(--btn-bg);
+  color: var(--text-dim);
+  transition: background 0.3s, color 0.3s;
 }
-.btn {
-  padding: 9px 28px;
+.round-tag.tag-best {
+  background: rgba(34,197,94,0.15);
+  color: var(--stat-best);
+}
+.round-tag.tag-worst {
+  background: rgba(239,68,68,0.15);
+  color: var(--stat-worst);
+}
+.results-right {
+  flex: 1;
+  min-width: 0;
+}
+.results-right canvas { width: 100%; height: 240px; }
+.restart-btn {
+  display: block;
+  margin: 24px auto 0;
+  padding: 12px 40px;
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  color: #64748b;
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(226,232,240,0.8);
 }
-.btn:hover {
-  background: rgba(255,255,255,0.9);
-  color: #475569;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+.restart-btn:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+  transform: translateY(-1px);
 }
-.hint-text {
-  font-size: 11px;
-  color: #cbd5e1;
-  margin-top: 10px;
-}
-.saved-section {
-  margin-top: 28px;
-  border-top: 1px solid rgba(226,232,240,0.6);
-  padding-top: 18px;
-}
-.saved-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 10px;
-}
-.saved-record {
-  background: rgba(255,255,255,0.6);
-  backdrop-filter: blur(4px);
-  border-radius: 12px;
-  padding: 11px 14px;
-  margin-bottom: 6px;
-  border: 1px solid rgba(255,255,255,0.7);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background 0.2s;
-}
-.saved-record:hover { background: rgba(255,255,255,0.85); }
-.saved-record-left { text-align: left; }
-.saved-record-avg {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
-  font-variant-numeric: tabular-nums;
-}
-.saved-record-avg small {
-  font-size: 12px;
-  font-weight: 400;
-  color: #94a3b8;
-}
-.saved-record-meta {
-  font-size: 11px;
-  color: #94a3b8;
-  margin-top: 1px;
-}
-.saved-record-right {
-  text-align: right;
-  font-size: 11px;
-  color: #a0aec0;
-  line-height: 1.3;
-}
-.saved-empty {
-  font-size: 12px;
-  color: #cbd5e1;
-  padding: 8px 0;
-}
-@media (max-width: 420px) {
-  .container { padding: 24px 16px 20px; }
-  .circle-wrap { width: 180px; height: 180px; }
-  .result-big { font-size: 40px; }
-  .stat-card { min-width: 68px; padding: 8px 12px; }
-  .stat-value { font-size: 17px; }
+
+@media (max-width: 600px) {
+  .landing-body { padding: 20px 18px 28px; }
+  .attempt-btn { min-width: 36px; height: 34px; font-size: 13px; }
+  .test-circle { width: 220px; height: 220px; }
+  .results-card { flex-direction: column; padding: 28px 24px; }
+  .results-left { flex: none; width: 100%; }
+  .results-avg { font-size: 56px; }
+  .results-right canvas { height: 180px; }
 }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>反应速度测试</h1>
-  <p class="subtitle">红色变绿色时尽快点击</p>
-
-  <div class="controls-row">
-    <label>轮数 <select id="roundSelect">
-      <option value="5">5</option>
-      <option value="10">10</option>
-      <option value="20">20</option>
-    </select></label>
-  </div>
-
-  <div class="circle-wrap">
-    <div id="testArea" class="circle-area idle">
-      <span class="circle-text" id="circleText">开始测试</span>
-    </div>
-  </div>
-
-  <div class="progress-dots" id="progressDots"></div>
-
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">本次</div>
-      <div class="stat-value" id="currentTime">--</div>
-    </div>
-    <div class="stat-card highlight">
-      <div class="stat-label">最快</div>
-      <div class="stat-value" id="bestTime">--</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">平均</div>
-      <div class="stat-value" id="avgTime">--</div>
-    </div>
-  </div>
-
-  <div class="round-tags" id="roundTags"></div>
-  <div class="grade-text" id="gradeText"></div>
-
-  <button class="btn" id="resetBtn">重新测试</button>
-  <div class="hint-text">空格键也可触发</div>
-
-  <div class="saved-section" id="savedHistory"></div>
-</div>
+<button class="theme-toggle" id="themeBtn" title="切换主题"></button>
+<div class="container" id="app"></div>
 
 <script>
-const STORAGE_KEY = 'reaction_test_history';
+const app = document.getElementById('app');
+const html = document.documentElement;
+const themeBtn = document.getElementById('themeBtn');
 
-const testArea = document.getElementById('testArea');
-const circleText = document.getElementById('circleText');
-const currentTime = document.getElementById('currentTime');
-const bestTime = document.getElementById('bestTime');
-const avgTime = document.getElementById('avgTime');
-const roundTags = document.getElementById('roundTags');
-const progressDots = document.getElementById('progressDots');
-const gradeText = document.getElementById('gradeText');
-const resetBtn = document.getElementById('resetBtn');
-const roundSelect = document.getElementById('roundSelect');
-const savedHistory = document.getElementById('savedHistory');
+let theme = 'dark';
+function setTheme(t) {
+  theme = t;
+  html.setAttribute('data-theme', t);
+  themeBtn.textContent = t === 'dark' ? '☀' : '🌙';
+  localStorage.setItem('rt_theme', t);
+}
+themeBtn.addEventListener('click', () => setTheme(theme === 'dark' ? 'light' : 'dark'));
+setTheme(localStorage.getItem('rt_theme') || 'dark');
 
-let TOTAL_ROUNDS = parseInt(roundSelect.value);
-let state = 'idle';
-let cancelWait = null;
-let readyAt = 0;
+let totalRounds = 5;
+let state = 'landing';
 let results = [];
 let currentRound = 0;
+let earlyCount = 0;
+let cancelTimer = null;
+let readyAt = 0;
+let countdownStart = 0;
+let countdownRaf = null;
+let globalClickHandler = null;
 
-function rafTimeout(callback, delay) {
-  const target = performance.now() + delay;
-  let running = true;
+function rafTimeout(fn, ms) {
+  const t = performance.now() + ms;
+  let on = true;
   function tick() {
-    if (!running) return;
-    if (performance.now() >= target) { callback(); return; }
+    if (!on) return;
+    if (performance.now() >= t) { fn(); return; }
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
-  return () => { running = false; };
+  return () => { on = false; };
 }
 
-function getGrade(ms) {
-  if (ms < 150) return '顶级反应';
-  if (ms < 190) return '非常优秀';
-  if (ms < 230) return '很快';
-  if (ms < 270) return '不错';
-  if (ms < 310) return '平均水平';
-  return '继续加油';
+function setClick(h) {
+  if (globalClickHandler) document.removeEventListener('pointerdown', globalClickHandler);
+  globalClickHandler = h;
+  document.addEventListener('pointerdown', h);
+}
+function clearClick() {
+  if (globalClickHandler) { document.removeEventListener('pointerdown', globalClickHandler); globalClickHandler = null; }
 }
 
-function setState(newState) {
-  state = newState;
-  testArea.className = 'circle-area ' + newState;
-  if (newState === 'idle') {
-    circleText.className = 'circle-text';
-    circleText.textContent = '开始测试';
-  } else if (newState === 'waiting') {
-    circleText.className = 'circle-text';
-    circleText.textContent = '等待...';
-  } else if (newState === 'ready') {
-    circleText.className = 'circle-text';
-    circleText.textContent = '点击!';
-  } else if (newState === 'clicked-early') {
-    circleText.className = 'circle-text';
-    circleText.textContent = '太早!';
-  }
+function render() {
+  if (cancelTimer && state !== 'waiting' && state !== 'early') { cancelTimer(); cancelTimer = null; }
+  if (countdownRaf) { cancelAnimationFrame(countdownRaf); countdownRaf = null; }
+  clearClick();
+  if (state === 'landing') renderLanding();
+  else if (state === 'blink') renderBlink();
+  else if (state === 'waiting' || state === 'ready' || state === 'early') renderTest();
+  else if (state === 'countdown') renderCountdown();
+  else if (state === 'results') renderResults();
 }
 
-function buildProgressDots() {
-  progressDots.innerHTML = '';
-  for (let i = 0; i < TOTAL_ROUNDS; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'progress-dot';
-    progressDots.appendChild(dot);
-  }
-}
-
-function updateProgressDots() {
-  const dots = progressDots.querySelectorAll('.progress-dot');
-  dots.forEach((dot, i) => {
-    dot.className = i < results.length ? 'progress-dot done' : 'progress-dot';
+/* ===== 首页 ===== */
+function renderLanding() {
+  const rounds = [3,5,10,15,20,30,100];
+  app.innerHTML = `
+    <div class="landing-card">
+      <div class="landing-header"><h1>反应速度测试</h1></div>
+      <div class="landing-body">
+        <div class="attempts-row">
+          <span class="attempts-label">尝试次数:</span>
+          ${rounds.map(n => `<button class="attempt-btn ${totalRounds===n?'active':''}" data-n="${n}">${n}</button>`).join('')}
+        </div>
+        <p class="game-desc">
+          本测试通过一个简单的视觉刺激来测试您的反应速度。这个测试的规则非常简单：当
+          <span class="hl-red">红色圆</span> 变成 <span class="hl-green">绿色圆</span>，以最快的速度点击1次屏幕，点任意位置都可以。
+          <strong>以上规则反复${totalRounds}次后，取平均成绩为测试结果。</strong>
+        </p>
+        <p class="game-desc dim">
+          据统计，12岁到60岁的人类平均反应速度是<strong>250毫秒</strong>，最高纪录是<strong>120毫秒</strong>，来看看你的吧。
+        </p>
+        <button class="start-btn" id="startBtn">开始测试</button>
+      </div>
+    </div>
+  `;
+  app.querySelectorAll('.attempt-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      totalRounds = parseInt(btn.dataset.n);
+      render();
+    });
+  });
+  document.getElementById('startBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    state = 'blink';
+    render();
   });
 }
 
-function updateStats() {
-  if (results.length > 0) {
-    const last = results[results.length - 1];
-    const best = Math.min(...results);
-    const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
-    currentTime.textContent = last;
-    bestTime.textContent = best;
-    avgTime.textContent = avg;
-  } else {
-    currentTime.textContent = '--';
-    bestTime.textContent = '--';
-    avgTime.textContent = '--';
-  }
+/* ===== 闪烁页 ===== */
+function renderBlink() {
+  app.innerHTML = `<div class="fullscreen blink-screen"><div class="blink-text">点任何地方开始测试</div></div>`;
+  setClick((e) => { e.preventDefault(); beginTest(); });
 }
 
-function renderRoundTags() {
-  roundTags.innerHTML = '';
-  if (results.length === 0) return;
-  const best = Math.min(...results);
-  const worst = Math.max(...results);
-  results.forEach((r, i) => {
-    const tag = document.createElement('span');
-    tag.className = 'round-tag';
-    tag.textContent = '#' + (i + 1) + '  ' + r + 'ms';
-    if (r === best) tag.classList.add('best');
-    if (r === worst && results.length > 1) tag.classList.add('worst');
-    roundTags.appendChild(tag);
-  });
-  updateProgressDots();
-}
-
-function showResult() {
-  const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
-  circleText.className = 'result-big';
-  circleText.textContent = avg;
-  gradeText.textContent = getGrade(avg);
-}
-
-function loadSavedHistory() {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-}
-
-function saveRecord(record) {
-  const records = loadSavedHistory();
-  records.unshift(record);
-  if (records.length > 10) records.splice(10);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-}
-
-function formatDate(ts) {
-  const d = new Date(ts);
-  const pad = (n) => String(n).padStart(2, '0');
-  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-}
-
-function renderSavedHistory() {
-  const records = loadSavedHistory();
-  if (records.length === 0) {
-    savedHistory.innerHTML = '<div class="saved-title">历史记录</div><div class="saved-empty">暂无记录，完成测试后自动保存</div>';
-    return;
-  }
-  let html = '<div class="saved-title">历史记录</div>';
-  records.forEach((r) => {
-    html += '<div class="saved-record">' +
-      '<div class="saved-record-left">' +
-        '<div class="saved-record-avg">' + r.avg + '<small> ms</small></div>' +
-        '<div class="saved-record-meta">最快 ' + r.best + 'ms · ' + r.rounds + ' 轮</div>' +
-      '</div>' +
-      '<div class="saved-record-right">' + formatDate(r.date) + '</div>' +
-    '</div>';
-  });
-  savedHistory.innerHTML = html;
-}
-
-function finishTest() {
-  const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
-  const best = Math.min(...results);
-  saveRecord({ date: Date.now(), rounds: TOTAL_ROUNDS, avg, best });
-  const unit = document.createElement('div');
-  unit.className = 'result-unit-label';
-  unit.textContent = 'ms';
-  circleText.className = 'result-big';
-  circleText.textContent = avg;
-  circleText.after(unit);
-  gradeText.textContent = getGrade(avg) + ' · ' + TOTAL_ROUNDS + ' 轮';
-  updateStats();
-  renderRoundTags();
-  renderSavedHistory();
-  setState('finished');
-}
-
-function readyPhase() {
-  setState('ready');
-  readyAt = performance.now();
-}
-
-function waitingPhase() {
-  setState('waiting');
-  cancelWait = rafTimeout(readyPhase, 2000 + Math.random() * 3000);
-}
-
-function startNextRound() {
-  if (currentRound >= TOTAL_ROUNDS) { finishTest(); return; }
-  waitingPhase();
-}
-
-function begin() {
+function beginTest() {
   results = [];
   currentRound = 0;
-  updateStats();
-  renderRoundTags();
-  buildProgressDots();
-  gradeText.textContent = '';
-  circleText.className = 'circle-text';
-  const existing = circleText.nextElementSibling;
-  if (existing && existing.className === 'result-unit-label') existing.remove();
+  earlyCount = 0;
   startNextRound();
 }
 
-function handleTrigger(timeStamp) {
-  if (state === 'idle') { begin(); return; }
-  if (state === 'finished') return;
-
-  if (state === 'waiting') {
-    if (cancelWait) cancelWait();
-    setState('clicked-early');
-    const dots = progressDots.querySelectorAll('.progress-dot');
-    if (dots[currentRound]) dots[currentRound].classList.add('early');
-    cancelWait = rafTimeout(startNextRound, 1200);
+function startNextRound() {
+  if (currentRound >= totalRounds) {
+    state = 'results';
+    render();
     return;
   }
+  state = 'waiting';
+  render();
+  cancelTimer = rafTimeout(() => {
+    state = 'ready';
+    readyAt = performance.now();
+    render();
+  }, 600 + Math.random() * 2800);
+}
 
+/* ===== 测试中 ===== */
+function renderTest() {
+  const isWaiting = state === 'waiting';
+  const circleClass = isWaiting ? 'waiting' : state === 'ready' ? 'ready' : 'early';
+  const statusText = isWaiting ? '等待变绿...' : state === 'ready' ? '现在！' : '太早了！';
+
+  app.innerHTML = `
+    <div class="fullscreen test-screen">
+      <div class="test-round">${currentRound + 1} / ${totalRounds}</div>
+      <div class="test-status">${statusText}</div>
+      <div class="test-circle ${circleClass}"></div>
+      <div class="test-hint">红色变绿色时尽快点击</div>
+    </div>
+  `;
+
+  setClick((e) => { e.preventDefault(); handleClick(e.timeStamp); });
+}
+
+function handleClick(ts) {
+  if (cancelTimer) { cancelTimer(); cancelTimer = null; }
+
+  if (state === 'waiting') {
+    earlyCount++;
+    state = 'early';
+    render();
+    cancelTimer = rafTimeout(() => startNextRound(), 800);
+    return;
+  }
   if (state === 'ready') {
-    const ms = Math.round(timeStamp - readyAt);
+    const ms = Math.round(ts - readyAt);
     results.push(ms);
     currentRound++;
-    updateStats();
-    renderRoundTags();
-    startNextRound();
+    state = 'countdown';
+    countdownStart = performance.now();
+    render();
     return;
+  }
+  if (state === 'early') {
+    startNextRound();
   }
 }
 
-testArea.addEventListener('pointerdown', (e) => {
-  e.preventDefault();
-  handleTrigger(e.timeStamp);
-});
+/* ===== 倒计时 ===== */
+function renderCountdown() {
+  const lastMs = results[results.length - 1];
+  const showChart = results.length >= 2;
 
+  app.innerHTML = `
+    <div class="fullscreen countdown-screen">
+      <div>
+        <span class="countdown-number">${lastMs}</span>
+        <span class="countdown-unit">ms</span>
+      </div>
+      <div class="countdown-round">${currentRound} / ${totalRounds}</div>
+      <div class="countdown-timer" id="timerNum">3</div>
+      <div class="countdown-timer-bar"><div class="countdown-timer-bar-inner" id="timerBar" style="width:100%"></div></div>
+      ${showChart ? '<div class="countdown-chart-wrap"><canvas id="miniChart"></canvas></div>' : ''}
+    </div>
+  `;
+
+  if (showChart) drawChart('miniChart', results, 160);
+
+  const timerNum = document.getElementById('timerNum');
+  const timerBar = document.getElementById('timerBar');
+  const duration = 3000;
+  function tick() {
+    const elapsed = performance.now() - countdownStart;
+    const remain = Math.max(0, duration - elapsed);
+    const sec = Math.ceil(remain / 1000);
+    if (timerNum) timerNum.textContent = sec;
+    if (timerBar) timerBar.style.width = ((remain / duration) * 100) + '%';
+    if (remain > 0) {
+      countdownRaf = requestAnimationFrame(tick);
+    } else {
+      startNextRound();
+    }
+  }
+  countdownRaf = requestAnimationFrame(tick);
+}
+
+/* ===== 折线图 ===== */
+function drawChart(id, data, h, isLight) {
+  const c = document.getElementById(id);
+  if (!c) return;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  c.width = rect.width * dpr;
+  c.height = h * dpr;
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const w = rect.width;
+  const pad = { t: 24, r: 16, b: 28, l: 44 };
+  const cw = w - pad.l - pad.r;
+  const ch = h - pad.t - pad.b;
+
+  const mn = Math.min(...data) * 0.85;
+  const mx = Math.max(...data) * 1.15;
+  const rng = mx - mn || 1;
+
+  const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+  const labelColor = isLight ? '#94a3b8' : '#64748b';
+
+  ctx.strokeStyle = gridColor;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (ch / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, y);
+    ctx.lineTo(w - pad.r, y);
+    ctx.stroke();
+    ctx.fillStyle = labelColor;
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(mx - (rng / 4) * i), pad.l - 8, y + 4);
+  }
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = labelColor;
+  ctx.font = '11px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  data.forEach((_, i) => {
+    const x = pad.l + (cw / (data.length - 1 || 1)) * i;
+    ctx.fillText(i + 1, x, h - 6);
+  });
+
+  const pts = data.map((v, i) => ({
+    x: pad.l + (cw / (data.length - 1 || 1)) * i,
+    y: pad.t + ch - ((v - mn) / rng) * ch
+  }));
+
+  if (pts.length > 1) {
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+    grad.addColorStop(0, 'rgba(59,130,246,0.12)');
+    grad.addColorStop(1, 'rgba(59,130,246,0)');
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pad.t + ch);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[pts.length-1].x, pad.t + ch);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const mx2 = (pts[i-1].x + pts[i].x) / 2;
+      ctx.bezierCurveTo(mx2, pts[i-1].y, mx2, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  pts.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#3b82f6';
+    ctx.fill();
+    ctx.strokeStyle = theme === 'dark' ? '#1a1f2e' : '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+/* ===== 评价系统 ===== */
+function getGrade(avg) {
+  if (avg < 150) return { level: 'S', color: '#f59e0b', label: '超凡反应', comment: '你的反应速度远超常人，堪称天赋异禀。绝大多数人穷其一生也无法达到这个水平。' };
+  if (avg < 180) return { level: 'A+', color: '#22c55e', label: '顶尖水准', comment: '非常出色的反应速度！你具备职业电竞选手或专业运动员级别的神经反射能力。' };
+  if (avg < 210) return { level: 'A', color: '#22c55e', label: '非常优秀', comment: '你的反应速度明显优于大多数人，在需要快速反应的场景中你会有明显优势。' };
+  if (avg < 240) return { level: 'B+', color: '#3b82f6', label: '高于平均', comment: '不错的成绩，你的反应速度高于普通人的平均水平，保持良好状态可以更快。' };
+  if (avg < 270) return { level: 'B', color: '#3b82f6', label: '中等偏上', comment: '处于正常范围的中上水平，通过专注训练和充足休息可以进一步提升。' };
+  if (avg < 300) return { level: 'C', color: '#64748b', label: '正常水平', comment: '你的反应速度处于大众平均水平，日常活动完全够用，无需担心。' };
+  if (avg < 350) return { level: 'D', color: '#94a3b8', label: '有待提升', comment: '反应速度略低于平均，可能是疲劳或注意力不集中导致，充分休息后再试试。' };
+  return { level: 'E', color: '#ef4444', label: '需要关注', comment: '反应偏慢，建议保证充足睡眠、减少屏幕使用时间，如持续偏低可咨询医生。' };
+}
+
+/* ===== 结果页 ===== */
+function renderResults() {
+  const best = Math.min(...results);
+  const worst = Math.max(...results);
+  const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
+  const grade = getGrade(avg);
+
+  app.innerHTML = `
+    <div class="fullscreen results-screen">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="results-card">
+          <div class="results-left">
+            <div><span class="results-avg">${avg}</span><span class="results-avg-unit">ms</span></div>
+            <div class="results-grade" style="color:${grade.color}">${grade.level} · ${grade.label}</div>
+            <div class="results-comment">${grade.comment}</div>
+            <div class="results-stats-row">
+              <div class="results-stat-item">
+                <div class="results-stat-label">最快</div>
+                <div class="results-stat-val best">${best}<small style="font-size:13px;font-weight:500;color:var(--text-dim)"> ms</small></div>
+              </div>
+              <div class="results-stat-item">
+                <div class="results-stat-label">平均</div>
+                <div class="results-stat-val avg-c">${avg}<small style="font-size:13px;font-weight:500;color:var(--text-dim)"> ms</small></div>
+              </div>
+              <div class="results-stat-item">
+                <div class="results-stat-label">最慢</div>
+                <div class="results-stat-val worst">${worst}<small style="font-size:13px;font-weight:500;color:var(--text-dim)"> ms</small></div>
+              </div>
+            </div>
+            <div class="results-rounds">
+              ${results.map((r, i) => {
+                let cls = '';
+                if (r === best) cls = 'tag-best';
+                else if (r === worst && results.length > 1) cls = 'tag-worst';
+                return `<span class="round-tag ${cls}">#${i+1} ${r}ms</span>`;
+              }).join('')}
+            </div>
+          </div>
+          <div class="results-right"><canvas id="finalChart"></canvas></div>
+        </div>
+        <button class="restart-btn" id="restartBtn">重新测试</button>
+      </div>
+    </div>
+  `;
+
+  drawChart('finalChart', results, 240, theme === 'light');
+  document.getElementById('restartBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    state = 'landing';
+    render();
+  });
+}
+
+/* ===== 键盘支持 ===== */
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault();
-    handleTrigger(e.timeStamp);
+    if (state === 'blink') beginTest();
+    else if (state === 'waiting' || state === 'ready' || state === 'early') handleClick(e.timeStamp);
   }
 });
 
-resetBtn.addEventListener('click', () => {
-  if (cancelWait) cancelWait();
-  results = [];
-  currentRound = 0;
-  setState('idle');
-  updateStats();
-  renderRoundTags();
-  buildProgressDots();
-  gradeText.textContent = '';
-  circleText.className = 'circle-text';
-  const existing = circleText.nextElementSibling;
-  if (existing && existing.className === 'result-unit-label') existing.remove();
-});
-
-roundSelect.addEventListener('change', () => {
-  if (state === 'idle' || state === 'finished') {
-    TOTAL_ROUNDS = parseInt(roundSelect.value);
-    buildProgressDots();
-  }
-});
-
-buildProgressDots();
-renderSavedHistory();
+render();
 </script>
 </body>
 </html>
