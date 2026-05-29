@@ -580,16 +580,18 @@ function checkComplete() {
 // 显示结果
 function showResults() {
   const elapsed = Math.max(0.001, (Date.now() - startTime) / 60000);
+  const val = textInput.value;
   let correct = 0;
-  for (let i = 0; i < target.length; i++) {
-    if (textInput.value[i] === target[i]) correct++;
+  for (let i = 0; i < Math.min(val.length, target.length); i++) {
+    if (val[i] === target[i]) correct++;
   }
 
   const wpm = lang === 'zh'
     ? Math.round(correct / elapsed)
     : Math.round((correct / 5) / elapsed);
 
-  const acc = Math.round(correct / target.length * 100);
+  // 基于已输入字符计算准确率，未输入的字符不计入
+  const acc = val.length > 0 ? Math.round(correct / val.length * 100) : 100;
 
   wpmEl.textContent = wpm;
   accuracyEl.textContent = acc + '%';
@@ -637,6 +639,7 @@ function start() {
 // 保存历史
 function saveHistory(wpm, acc, correctCount) {
   const history = JSON.parse(localStorage.getItem('typingHistory') || '[]');
+  const val = textInput.value;
   history.unshift({
     id: new Date().toISOString(),
     date: new Date().toISOString(),
@@ -647,7 +650,7 @@ function saveHistory(wpm, acc, correctCount) {
     accuracy: acc,
     duration: Math.round((Date.now() - startTime) / 1000),
     correctChars: correctCount,
-    totalChars: target.length
+    totalChars: val.length  // 使用实际输入的字符数
   });
 
   if (history.length > 20) history.length = 20;
