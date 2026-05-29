@@ -528,13 +528,41 @@ function updateStats() {
   const acc = val.length > 0 ? Math.round(correct / val.length * 100) : 100;
   accuracyEl.textContent = acc + '%';
 
-  timerEl.textContent = Math.round((Date.now() - startTime) / 1000) + 's';
+  // 倒计时模式显示剩余时间，其他模式显示已用时间
+  if (mode === 'countdown') {
+    const remaining = Math.max(0, 60 - Math.round((Date.now() - startTime) / 1000));
+    timerEl.textContent = remaining + 's';
+  } else {
+    timerEl.textContent = Math.round((Date.now() - startTime) / 1000) + 's';
+  }
+}
+
+// 生成更多随机单词
+function generateMoreWords() {
+  const pool = wordPool[lang];
+  const count = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
+  let result = [];
+  for (let i = 0; i < count; i++) {
+    result.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  return lang === 'zh' ? result.join('') : result.join(' ');
 }
 
 // 检查完成
 function checkComplete() {
+  // random 模式下，输入到末尾时自动扩展文本
+  if (mode === 'random') {
+    if (textInput.value.length >= target.length - 5) {
+      target += generateMoreWords();
+      renderDisplay();
+    }
+    return;
+  }
+
+  // countdown 模式由计时器控制结束
   if (mode === 'countdown') return;
 
+  // text 模式：输入完文本后自动结束
   if (textInput.value.length >= target.length) {
     completed = true;
     clearInterval(timer);
@@ -577,7 +605,8 @@ function start() {
 
   wpmEl.textContent = '0';
   accuracyEl.textContent = '--';
-  timerEl.textContent = '0s';
+  // 倒计时模式显示 60s，其他模式显示 0s
+  timerEl.textContent = mode === 'countdown' ? '60s' : '0s';
 
   startTime = Date.now();
   timer = setInterval(updateStats, 200);
@@ -677,7 +706,8 @@ function resetState() {
   textInput.disabled = true;
   wpmEl.textContent = '0';
   accuracyEl.textContent = '--';
-  timerEl.textContent = '0s';
+  // 倒计时模式显示 60s，其他模式显示 0s
+  timerEl.textContent = mode === 'countdown' ? '60s' : '0s';
   target = pickText();
   renderDisplay();
 }
@@ -729,8 +759,15 @@ document.addEventListener('keydown', (e) => {
     panelVisible = false;
     advancedPanel.classList.remove('visible');
   }
-  if (e.key === 'Enter' && !started) {
-    start();
+  // Enter 键：未开始时开始测试；random 模式打字中重新开始
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (!started) {
+      start();
+    } else if (mode === 'random') {
+      resetState();
+      start();
+    }
   }
 });
 
