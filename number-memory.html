@@ -3,102 +3,912 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>数字记忆测试</title>
+<title>数字记忆大师</title>
 <style>
+/* ===== 基础重置 ===== */
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;background:linear-gradient(145deg,#f0f4ff,#e8edf5);display:flex;justify-content:center;align-items:center;user-select:none}
-.container{text-align:center;max-width:420px;width:100%;padding:32px 24px 28px}
-h1{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:2px}
-.subtitle{font-size:13px;color:#94a3b8;margin-bottom:20px}
-.stage-area{width:260px;height:260px;border-radius:50%;margin:0 auto 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:background .3s,box-shadow .3s}
-.stage-area.showing{background:linear-gradient(135deg,#818cf8,#6366f1);box-shadow:0 12px 40px rgba(99,102,241,0.30)}
-.stage-area.inputting{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 12px 40px rgba(245,158,11,0.30)}
-.stage-area.wrong{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 12px 40px rgba(239,68,68,0.30);animation:shake .4s}
-.stage-area.success{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 12px 48px rgba(16,185,129,0.35);animation:pop .4s cubic-bezier(0.34,1.56,0.64,1)}
-.stage-area::after{content:'';position:absolute;inset:2px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent 50%);pointer-events:none}
-@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
-@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
-.num-big{font-size:56px;font-weight:800;color:#fff;letter-spacing:6px;position:relative;z-index:1}
-.num-hint{font-size:14px;font-weight:500;color:rgba(255,255,255,0.8);position:relative;z-index:1;margin-top:6px}
-.input-row{display:flex;justify-content:center;gap:10px;margin-bottom:14px;align-items:center}
-#numInput{width:200px;padding:10px 14px;border:2px solid #e2e8f0;border-radius:12px;font-size:20px;font-weight:600;text-align:center;letter-spacing:4px;outline:none;transition:border-color .2s;color:#1e293b;background:#fff}
-#numInput:focus{border-color:#818cf8}
-#numInput:disabled{background:#f8fafc;color:#94a3b8}
-.btn-submit{padding:8px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;background:#6366f1;color:#fff;transition:all .2s}
-.btn-submit:hover{background:#4f46e5;box-shadow:0 4px 12px rgba(99,102,241,0.3)}
-.stats-row{display:flex;justify-content:center;gap:10px;margin-bottom:14px}
-.stat-card{background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);border-radius:14px;padding:10px 14px;min-width:70px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border:1px solid rgba(255,255,255,0.8)}
-.stat-label{font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
-.stat-value{font-size:20px;font-weight:700;color:#1e293b;font-variant-numeric:tabular-nums}
-.stat-card.highlight .stat-value{color:#10b981}
-.grade-text{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:14px;min-height:20px}
-.btn{padding:9px 28px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b;background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(226,232,240,0.8)}
-.btn:hover{background:rgba(255,255,255,0.9);color:#475569;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
-@media(max-width:420px){.stage-area{width:220px;height:220px}.num-big{font-size:40px}}
+
+/* ===== 全局样式 ===== */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #0f172a, #1e293b, #0f172a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  overflow-x: hidden;
+}
+
+/* ===== 容器 ===== */
+.container {
+  text-align: center;
+  max-width: 440px;
+  width: 100%;
+  padding: 32px 24px 28px;
+  position: relative;
+}
+
+/* ===== 标题区域 ===== */
+h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 22px;
+  font-weight: 500;
+}
+
+/* ===== 主舞台（圆形区域） ===== */
+.stage-area {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.4s cubic-bezier(.4,0,.2,1), box-shadow 0.4s cubic-bezier(.4,0,.2,1);
+}
+
+/* 舞台内高光 */
+.stage-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 状态：展示数字 */
+.stage-area.showing {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  box-shadow: 0 16px 48px rgba(99,102,241,0.40), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+/* 状态：等待输入 */
+.stage-area.inputting {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 16px 48px rgba(245,158,11,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+/* 状态：回答错误 */
+.stage-area.wrong {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 16px 48px rgba(239,68,68,0.40);
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97);
+}
+/* 状态：回答正确 */
+.stage-area.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 20px 56px rgba(16,185,129,0.45);
+  animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ===== 舞台内文字 ===== */
+.num-big {
+  font-size: 54px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 6px;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: opacity 0.2s;
+}
+.num-hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  position: relative;
+  z-index: 2;
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+}
+
+/* ===== 输入区域 ===== */
+.input-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+#numInput {
+  width: 200px;
+  padding: 10px 14px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 5px;
+  outline: none;
+  transition: all 0.25s;
+  color: #f1f5f9;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(4px);
+}
+#numInput::placeholder {
+  color: #64748b;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+#numInput:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+  background: rgba(255,255,255,0.1);
+}
+#numInput:disabled {
+  background: rgba(255,255,255,0.03);
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.btn-submit {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+}
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99,102,241,0.45);
+}
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ===== 统计卡片 ===== */
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 10px 16px;
+  min-width: 72px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.3s;
+}
+.stat-card.highlight {
+  border-color: rgba(16,185,129,0.4);
+  box-shadow: 0 4px 20px rgba(16,185,129,0.15);
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f1f5f9;
+  font-variant-numeric: tabular-nums;
+}
+.stat-card.highlight .stat-value {
+  color: #10b981;
+}
+
+/* ===== 连击文字 ===== */
+.grade-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 14px;
+  min-height: 22px;
+  transition: all 0.3s;
+}
+
+/* ===== 按钮 ===== */
+.btn {
+  padding: 10px 26px;
+  border: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.1);
+  letter-spacing: 0.3px;
+}
+.btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+/* 静音按钮 */
+.btn-mute {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 10px;
+  transition: all 0.2s;
+  z-index: 10;
+  line-height: 1;
+}
+.btn-mute:hover {
+  background: rgba(255,255,255,0.15);
+  transform: scale(1.05);
+}
+
+/* 关卡进度条 */
+.level-progress {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.level-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: all 0.3s;
+}
+.level-dot.active {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.5);
+}
+.level-dot.current {
+  background: #fbbf24;
+  box-shadow: 0 0 8px rgba(251,191,36,0.5);
+  transform: scale(1.3);
+}
+
+/* ===== 动画关键帧 ===== */
+@keyframes shake {
+  15% { transform: translateX(-6px) rotate(-1deg); }
+  30% { transform: translateX(6px) rotate(1deg); }
+  45% { transform: translateX(-5px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+@keyframes pop {
+  0% { transform: scale(0.85); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-120vh) rotate(0deg); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.3); }
+  50% { box-shadow: 0 0 40px rgba(99,102,241,0.6); }
+}
+@keyframes slideDown {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes digitReveal {
+  0% { opacity: 0; transform: scale(0.5) rotateX(90deg); }
+  60% { transform: scale(1.1) rotateX(-5deg); }
+  100% { opacity: 1; transform: scale(1) rotateX(0); }
+}
+
+/* ===== 粒子 & 纸屑 ===== */
+.particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100;
+  animation: particleFly 0.9s ease-out forwards;
+}
+@keyframes particleFly {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+}
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  pointer-events: none;
+  z-index: 200;
+  animation: confettiFall var(--duration) ease-in forwards;
+  animation-delay: var(--delay);
+  border-radius: 2px;
+}
+
+/* ===== 涟漪效果 ===== */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  width: 50px;
+  height: 50px;
+  animation: ripple 0.6s ease-out forwards;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ===== 遮罩层（胜利/失败弹窗） ===== */
+.overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 500;
+  opacity: 0;
+  transition: opacity 0.35s;
+  animation: fadeIn 0.3s forwards;
+}
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+.overlay.show {
+  opacity: 1;
+}
+.overlay-card {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border-radius: 24px;
+  padding: 36px 32px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+  transform: scale(0.85) translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 380px;
+  width: 90%;
+  animation: slideDown 0.4s 0.1s both;
+}
+.overlay.show .overlay-card {
+  transform: scale(1) translateY(0);
+}
+.overlay-emoji {
+  font-size: 52px;
+  margin-bottom: 14px;
+  animation: pop 0.6s 0.3s both;
+}
+.overlay-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin-bottom: 8px;
+}
+.overlay-subtitle {
+  font-size: 15px;
+  color: #64748b;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.overlay-subtitle strong {
+  color: #10b981;
+  font-size: 18px;
+}
+.overlay-btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+  letter-spacing: 0.5px;
+}
+.overlay-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.5);
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 440px) {
+  .container { padding: 22px 16px 20px; }
+  .stage-area { width: 200px; height: 200px; }
+  .num-big { font-size: 40px; letter-spacing: 4px; }
+  .stats-row { gap: 6px; }
+  .stat-card { padding: 8px 10px; min-width: 60px; }
+  .stat-value { font-size: 18px; }
+  .stat-label { font-size: 9px; }
+  #numInput { width: 160px; font-size: 17px; }
+  .btn { padding: 8px 18px; font-size: 12px; }
+  h1 { font-size: 20px; }
+}
 </style>
 </head>
 <body>
-<div class="container">
-<h1>数字记忆测试</h1>
-<p class="subtitle">记住出现的数字，然后输入</p>
-<div class="stage-area" id="stage">
-<span class="num-big" id="numDisplay"></span>
-<span class="num-hint" id="numHint">等待数字...</span>
+
+<div class="container" style="position:relative">
+  <!-- 静音按钮 -->
+  <button class="btn-mute" id="muteBtn" title="静音切换">🔊</button>
+
+  <h1>数字记忆大师</h1>
+  <p class="subtitle">记住数字，挑战你的记忆极限</p>
+
+  <!-- 关卡进度 -->
+  <div class="level-progress" id="levelProgress"></div>
+
+  <!-- 主舞台 -->
+  <div class="stage-area showing" id="stage">
+    <span class="num-big" id="numDisplay"></span>
+    <span class="num-hint" id="numHint">准备开始...</span>
+  </div>
+
+  <!-- 输入区 -->
+  <div class="input-row">
+    <input type="text" id="numInput" placeholder="输入数字" disabled autocomplete="off">
+    <button class="btn-submit" id="submitBtn" disabled>确认</button>
+  </div>
+
+  <!-- 统计 -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">等级</div>
+      <div class="stat-value" id="levelDisp">1</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">最佳</div>
+      <div class="stat-value" id="bestDisp">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">位数</div>
+      <div class="stat-value" id="digitCount">3</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">连击</div>
+      <div class="stat-value" id="comboDisp">0</div>
+    </div>
+  </div>
+
+  <div class="grade-text" id="gradeText"></div>
+
+  <button class="btn" id="resetBtn">🔄 重新开始</button>
 </div>
-<div class="input-row">
-<input type="text" id="numInput" placeholder="输入数字" disabled>
-<button class="btn-submit" id="submitBtn" disabled>确认</button>
-</div>
-<div class="stats-row">
-<div class="stat-card"><div class="stat-label">等级</div><div class="stat-value" id="levelDisp">1</div></div>
-<div class="stat-card highlight"><div class="stat-label">最佳</div><div class="stat-value" id="bestDisp">0</div></div>
-<div class="stat-card"><div class="stat-label">位数</div><div class="stat-value" id="digitCount">3</div></div>
-</div>
-<div class="grade-text" id="gradeText"></div>
-<button class="btn" id="resetBtn">重新开始</button>
-</div>
+
 <script>
-const STORAGE_KEY='number_memory_best';
-const stageEl=document.getElementById('stage'),numDisplay=document.getElementById('numDisplay'),numHint=document.getElementById('numHint'),numInput=document.getElementById('numInput'),submitBtn=document.getElementById('submitBtn'),levelDisp=document.getElementById('levelDisp'),bestDisp=document.getElementById('bestDisp'),digitCount=document.getElementById('digitCount'),gradeText=document.getElementById('gradeText'),resetBtn=document.getElementById('resetBtn');
-let level=1,digits=3,currentNum='',phase='showing',bestBest=0;
+/* ============================================================
+   数字记忆大师 - 主逻辑
+   ============================================================ */
 
-function loadBest(){const v=localStorage.getItem(STORAGE_KEY);return v?parseInt(v):0}
-function saveBest(l){if(l>bestBest){bestBest=l;bestDisp.textContent=l;localStorage.setItem(STORAGE_KEY,String(l))}}
+// ===== DOM 引用 =====
+const $ = id => document.getElementById(id);
+const stageEl      = $('stage');
+const numDisplay   = $('numDisplay');
+const numHint      = $('numHint');
+const numInput     = $('numInput');
+const submitBtn    = $('submitBtn');
+const levelDisp    = $('levelDisp');
+const bestDisp     = $('bestDisp');
+const digitCount   = $('digitCount');
+const comboDisp    = $('comboDisp');
+const gradeText    = $('gradeText');
+const resetBtn     = $('resetBtn');
+const muteBtn      = $('muteBtn');
+const levelProgress= $('levelProgress');
 
-function startLevel(){
-  digits=level+2;digitCount.textContent=digits;currentNum='';
-  for(let i=0;i<digits;i++)currentNum+=Math.floor(Math.random()*10);
-  phase='showing';numInput.value='';numInput.disabled=true;submitBtn.disabled=true;
-  stageEl.className='stage-area showing';numDisplay.textContent=currentNum;numHint.textContent='记住这个数字';
-  const showTime=Math.max(1500,digits*500);
-  setTimeout(()=>{
-    if(phase!=='showing')return;
-    numDisplay.textContent='?';numHint.textContent='输入你记住的数字';
-    stageEl.className='stage-area inputting';phase='inputting';
-    numInput.disabled=false;numInput.focus();submitBtn.disabled=false;
-  },showTime);
+// ===== 常量 =====
+const STORAGE_KEY  = 'num_memory_best';
+const MUTED_KEY    = 'num_memory_muted';
+
+// ===== 状态 =====
+let level = 1;
+let digits = 3;
+let currentNum = '';
+let phase = 'idle'; // idle | showing | inputting | success | wrong
+let bestLevel = 0;
+let combo = 0;
+let maxCombo = 0;
+
+// ===== 音效系统 =====
+class AudioManager {
+  constructor() {
+    this.ctx = null;
+    this.muted = localStorage.getItem(MUTED_KEY) === 'true';
+  }
+
+  init() {
+    if (!this.ctx) {
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(e) { /* 浏览器不支持 */ }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  play(freq, dur, type='sine', vol=0.25) {
+    if (this.muted || !this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(this.ctx.currentTime);
+      osc.stop(this.ctx.currentTime + dur);
+    } catch(e) {}
+  }
+
+  playFlip()   { this.play(880, 0.08, 'sine', 0.15); }
+  playSuccess(){ this.play(523, 0.12); setTimeout(()=>this.play(659,0.12),100); setTimeout(()=>this.play(784,0.15),200); }
+  playFail()   { this.play(180, 0.35, 'sawtooth', 0.12); }
+  playLevelUp(){ const notes=[523,659,784,1047]; notes.forEach((n,i)=>setTimeout(()=>this.play(n,0.18),i*120)); }
+  playCombo(n) { this.play(600 + n*80, 0.1, 'sine', 0.2); }
+
+  toggle() {
+    this.muted = !this.muted;
+    localStorage.setItem(MUTED_KEY, this.muted);
+    return this.muted;
+  }
 }
+const audio = new AudioManager();
+muteBtn.textContent = audio.muted ? '🔇' : '🔊';
+muteBtn.addEventListener('click', () => {
+  audio.init();
+  const m = audio.toggle();
+  muteBtn.textContent = m ? '🔇' : '🔊';
+});
 
-function checkAnswer(){
-  if(phase!=='inputting')return;
-  const ans=numInput.value.trim();
-  if(ans===currentNum){
-    phase='success';saveBest(level);levelDisp.textContent=level;
-    stageEl.className='stage-area success';numDisplay.textContent='✓';numHint.textContent='正确!';
-    numInput.disabled=true;submitBtn.disabled=true;gradeText.textContent='第 '+level+' 关通过!';
-    level++;
-    setTimeout(startLevel,1200);
-  }else{
-    phase='wrong';stageEl.className='stage-area wrong';numDisplay.textContent=currentNum;numHint.textContent='正确答案';
-    numInput.disabled=true;submitBtn.disabled=true;
-    saveBest(level-1);gradeText.textContent='失败在第 '+level+' 关，正确答案：'+currentNum;
+// ===== 粒子效果 =====
+function spawnParticles(x, y, count=14, colors=['#10b981','#34d399','#6ee7b7','#a7f3d0']) {
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = x + 'px';
+    p.style.top  = y + 'px';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.setProperty('--tx', (Math.random()-0.5)*120+'px');
+    p.style.setProperty('--ty', (Math.random()-0.5)*120+'px');
+    p.style.width  = (4+Math.random()*6)+'px';
+    p.style.height = p.style.width;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 950);
   }
 }
 
-submitBtn.addEventListener('click',checkAnswer);
-numInput.addEventListener('keydown',(e)=>{if(e.key==='Enter')checkAnswer()});
-resetBtn.addEventListener('click',()=>{level=1;gradeText.textContent='';startLevel()});
-bestBest=loadBest();bestDisp.textContent=bestBest;levelDisp.textContent='1';
+function spawnConfetti() {
+  const colors = ['#ff6b6b','#feca57','#48dbfb','#ff9ff3','#54a0ff','#5f27cd','#10b981','#f59e0b'];
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.setProperty('--delay', (Math.random()*1.5)+'s');
+    c.style.setProperty('--duration', (2+Math.random()*2)+'s');
+    c.style.width  = (6+Math.random()*8)+'px';
+    c.style.height = (4+Math.random()*6)+'px';
+    c.style.borderRadius = Math.random()>0.5?'50%':'2px';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 4500);
+  }
+}
+
+// ===== 涟漪 =====
+function addRipple(el) {
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  const rect = el.getBoundingClientRect();
+  const stageRect = stageEl.getBoundingClientRect();
+  r.style.left = (rect.left + rect.width/2 - stageRect.left - 25)+'px';
+  r.style.top  = (rect.top + rect.height/2 - stageRect.top - 25)+'px';
+  stageEl.appendChild(r);
+  setTimeout(()=>r.remove(), 600);
+}
+
+// ===== 关卡进度点 =====
+function renderProgress() {
+  levelProgress.innerHTML = '';
+  const total = 8;
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'level-dot';
+    if (i < level - 1) dot.classList.add('active');
+    if (i === level - 1) dot.classList.add('current');
+    levelProgress.appendChild(dot);
+  }
+}
+
+// ===== 本地存储 =====
+function loadBest() {
+  try { const v = localStorage.getItem(STORAGE_KEY); return v ? JSON.parse(v) : 0; }
+  catch(e) { return 0; }
+}
+function saveBest(lv) {
+  if (lv > bestLevel) {
+    bestLevel = lv;
+    bestDisp.textContent = lv;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(lv)); } catch(e) {}
+  }
+}
+
+// ===== 关卡逻辑 =====
+function calcDigits(lv) {
+  if (lv <= 3)  return 3;
+  if (lv <= 6)  return 4;
+  if (lv <= 10) return 5;
+  if (lv <= 15) return 6;
+  return Math.min(10, 6 + Math.floor((lv - 15) / 3));
+}
+function calcShowTime(lv, d) {
+  return Math.max(1800, 800 + d * 450 + Math.max(0, lv - 5) * 120);
+}
+
+function generateNumber() {
+  let num = '';
+  for (let i = 0; i < digits; i++) {
+    num += Math.floor(Math.random()*10);
+  }
+  return num;
+}
+
+// ===== 阶段切换 =====
+function setPhase(p) {
+  phase = p;
+  stageEl.className = 'stage-area ' + p;
+}
+
+// ===== 开始关卡 =====
+function startLevel() {
+  digits = calcDigits(level);
+  digitCount.textContent = digits;
+  currentNum = generateNumber();
+  phase = 'showing';
+
+  // 重置输入
+  numInput.value = '';
+  numInput.disabled = true;
+  submitBtn.disabled = true;
+
+  // 显示数字
+  setPhase('showing');
+  numDisplay.textContent = currentNum;
+  numHint.textContent = '记住这个数字';
+  numDisplay.style.animation = 'none';
+  void numDisplay.offsetWidth;
+  numDisplay.style.animation = 'digitReveal 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+
+  renderProgress();
+  levelDisp.textContent = level;
+
+  const showTime = calcShowTime(level, digits);
+  setTimeout(() => {
+    if (phase !== 'showing') return;
+    // 隐藏数字
+    numDisplay.textContent = '?';
+    numHint.textContent = '输入你记住的数字';
+    setPhase('inputting');
+    numInput.disabled = false;
+    numInput.focus();
+    submitBtn.disabled = false;
+  }, showTime);
+}
+
+// ===== 检查答案 =====
+function checkAnswer() {
+  if (phase !== 'inputting') return;
+  const ans = numInput.value.trim();
+
+  if (!ans) return;
+
+  if (ans === currentNum) {
+    // 正确
+    phase = 'success';
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
+    comboDisp.textContent = combo;
+
+    audio.init();
+    audio.playSuccess();
+    if (combo > 1 && combo % 5 === 0) audio.playCombo(combo);
+
+    saveBest(level);
+
+    setPhase('success');
+    numDisplay.textContent = '✓';
+    numHint.textContent = combo >= 3 ? `太棒了！连击 x${combo}` : '正确!';
+    numInput.disabled = true;
+    submitBtn.disabled = true;
+
+    addRipple(submitBtn);
+    const rect = stageEl.getBoundingClientRect();
+    spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2);
+
+    gradeText.textContent = `第 ${level} 关通过！`;
+    gradeText.style.color = '#10b981';
+
+    level++;
+    levelDisp.textContent = level;
+
+    if (level % 5 === 0) {
+      // 每5关放纸屑
+      setTimeout(spawnConfetti, 300);
+      audio.playLevelUp();
+      setTimeout(() => {
+        showToast('🎊 恭喜到达 ' + level + ' 关！');
+      }, 500);
+    }
+
+    setTimeout(startLevel, 1400);
+
+  } else {
+    // 错误
+    phase = 'wrong';
+    combo = 0;
+    comboDisp.textContent = '0';
+
+    audio.init();
+    audio.playFail();
+
+    setPhase('wrong');
+    numDisplay.textContent = currentNum;
+    numHint.textContent = '答案是 ' + currentNum;
+    numInput.disabled = true;
+    submitBtn.disabled = true;
+
+    const rect = stageEl.getBoundingClientRect();
+    spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, 10, ['#ef4444','#f87171','#fca5a5']);
+
+    saveBest(level - 1);
+    gradeText.textContent = `在第 ${level} 关失败了，最佳等级：${bestLevel}`;
+    gradeText.style.color = '#ef4444';
+
+    setTimeout(() => showGameOver(), 1800);
+  }
+}
+
+// ===== 轻提示 Toast =====
+function showToast(msg) {
+  const existing = document.querySelector('.toast-msg');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast-msg';
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%) translateY(-20px)',
+    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+    color: '#fff', padding: '12px 28px', borderRadius: '14px',
+    fontSize: '15px', fontWeight: '700', zIndex: '600',
+    boxShadow: '0 8px 30px rgba(99,102,241,0.5)',
+    opacity: '0', transition: 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+    letterSpacing: '0.5px'
+  });
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(-20px)';
+    setTimeout(()=>t.remove(), 350);
+  }, 2500);
+}
+
+// ===== 游戏结束弹窗 =====
+function showGameOver() {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  const card = document.createElement('div');
+  card.className = 'overlay-card';
+
+  const isRecord = bestLevel >= level;
+  card.innerHTML = `
+    <div class="overlay-emoji">${isRecord ? '🏆' : '💪'}</div>
+    <div class="overlay-title">${isRecord ? '新纪录！' : '游戏结束'}</div>
+    <div class="overlay-subtitle">
+      你到达了 <strong>第 ${level} 关</strong><br>
+      最佳纪录：第 ${bestLevel} 关 · 最大连击：${maxCombo}
+    </div>
+    <button class="overlay-btn" id="retryBtn">🔄 再来一次</button>
+  `;
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  requestAnimationFrame(() => overlay.classList.add('show'));
+
+  card.querySelector('#retryBtn').addEventListener('click', () => {
+    overlay.remove();
+    resetGame();
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+// ===== 重置 =====
+function resetGame() {
+  level = 1;
+  combo = 0;
+  comboDisp.textContent = '0';
+  gradeText.textContent = '';
+  gradeText.style.color = '#94a3b8';
+  startLevel();
+}
+
+// ===== 事件绑定 =====
+submitBtn.addEventListener('click', checkAnswer);
+numInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkAnswer();
+});
+resetBtn.addEventListener('click', resetGame);
+
+// 输入时实时反馈
+numInput.addEventListener('input', () => {
+  if (phase === 'inputting') {
+    const val = numInput.value.trim();
+    if (val && val !== currentNum.slice(0, val.length)) {
+      numInput.style.borderColor = 'rgba(239,68,68,0.6)';
+      numInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+    } else {
+      numInput.style.borderColor = 'rgba(255,255,255,0.1)';
+      numInput.style.boxShadow = 'none';
+    }
+  }
+});
+
+// ===== 初始化 =====
+bestLevel = loadBest();
+bestDisp.textContent = bestLevel;
+levelDisp.textContent = '1';
+comboDisp.textContent = '0';
 startLevel();
 </script>
 </body>
