@@ -672,11 +672,13 @@ function loadBest() {
   catch(e) { return 0; }
 }
 function saveBest(lv) {
+  const prevBest = bestLevel;
   if (lv > bestLevel) {
     bestLevel = lv;
     bestDisp.textContent = lv;
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(lv)); } catch(e) {}
   }
+  return lv > prevBest;
 }
 
 // ===== 关卡逻辑 =====
@@ -811,11 +813,12 @@ function checkAnswer() {
     const rect = stageEl.getBoundingClientRect();
     spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, 10, ['#ef4444','#f87171','#fca5a5']);
 
-    saveBest(level - 1);
+    const reachedLevel = level - 1;
+    const isNewRecord = saveBest(reachedLevel);
     gradeText.textContent = `在第 ${level} 关失败了，最佳等级：${bestLevel}`;
     gradeText.style.color = '#ef4444';
 
-    setTimeout(() => showGameOver(), 1800);
+    setTimeout(() => showGameOver(isNewRecord), 1800);
   }
 }
 
@@ -848,16 +851,15 @@ function showToast(msg) {
 }
 
 // ===== 游戏结束弹窗 =====
-function showGameOver() {
+function showGameOver(isNewRecord) {
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
   const card = document.createElement('div');
   card.className = 'overlay-card';
 
-  const isRecord = bestLevel >= level;
   card.innerHTML = `
-    <div class="overlay-emoji">${isRecord ? '🏆' : '💪'}</div>
-    <div class="overlay-title">${isRecord ? '新纪录！' : '游戏结束'}</div>
+    <div class="overlay-emoji">${isNewRecord ? '🏆' : '💪'}</div>
+    <div class="overlay-title">${isNewRecord ? '新纪录！' : '游戏结束'}</div>
     <div class="overlay-subtitle">
       你到达了 <strong>第 ${level} 关</strong><br>
       最佳纪录：第 ${bestLevel} 关 · 最大连击：${maxCombo}
