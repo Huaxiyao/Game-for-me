@@ -583,11 +583,11 @@ class AudioManager {
     } catch(e) {}
   }
 
-  playFlip()   { this.play(880, 0.08, 'sine', 0.15); }
-  playSuccess(){ this.play(523, 0.12); setTimeout(()=>this.play(659,0.12),100); setTimeout(()=>this.play(784,0.15),200); }
-  playFail()   { this.play(180, 0.35, 'sawtooth', 0.12); }
-  playLevelUp(){ const notes=[523,659,784,1047]; notes.forEach((n,i)=>setTimeout(()=>this.play(n,0.18),i*120)); }
-  playCombo(n) { this.play(600 + n*80, 0.1, 'sine', 0.2); }
+  playFlip()   { this.play(660, 0.06, 'triangle', 0.12); }
+  playSuccess(){ this.play(523, 0.1); setTimeout(()=>this.play(659,0.1),80); }
+  playFail()   { this.play(220, 0.2, 'triangle', 0.1); }
+  playLevelUp(){ const notes=[523,659,784,1047]; notes.forEach((n,i)=>setTimeout(()=>this.play(n,0.15),i*100)); }
+  playCombo(n) { this.play(500 + Math.min(n,10)*60, 0.08, 'sine', 0.18); setTimeout(()=>this.play(700+Math.min(n,10)*60,0.1,'sine',0.15),60); }
 
   toggle() {
     this.muted = !this.muted;
