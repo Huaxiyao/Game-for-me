@@ -579,7 +579,7 @@ function checkComplete() {
 
 // 显示结果
 function showResults() {
-  const elapsed = (Date.now() - startTime) / 60000;
+  const elapsed = Math.max(0.001, (Date.now() - startTime) / 60000);
   let correct = 0;
   for (let i = 0; i < target.length; i++) {
     if (textInput.value[i] === target[i]) correct++;
