@@ -1174,7 +1174,7 @@ class Game {
 
     // 庆祝动画
     if (n > 0) {
-      this.renderer.flashNumber(n);
+      this.renderer.flashNumber(n, this.state);
       if (SudokuEngine.isLineComplete(this.state, 'row', r)) {
         this.renderer.celebrateLine('row', r);
       }
