@@ -355,7 +355,395 @@ body {
 </div>
 
 <script>
-// JavaScript 逻辑将在后续任务中添加
+// 状态变量
+let lang = 'zh';
+let mode = 'text';
+let difficulty = 'medium';
+let target = '';
+let started = false;
+let completed = false;
+let startTime = 0;
+let timer = null;
+let panelVisible = false;
+
+// DOM 元素
+const textDisplay = document.getElementById('textDisplay');
+const textInput = document.getElementById('textInput');
+const wpmEl = document.getElementById('wpm');
+const accuracyEl = document.getElementById('accuracy');
+const timerEl = document.getElementById('timer');
+const wpmUnitEl = document.getElementById('wpmUnit');
+const advancedPanel = document.getElementById('advancedPanel');
+
+// 文本数据
+const texts = {
+  zh: {
+    easy: [
+      '春天的早晨阳光明媚小鸟在枝头欢快地歌唱',
+      '生活不止眼前的苟且还有诗和远方的田野',
+      '时间是一只藏在黑暗中的温柔的手',
+      '世界上最宽阔的是海洋比海洋更宽阔的是天空'
+    ],
+    medium: [
+      '春天的早晨，阳光明媚，小鸟在枝头欢快地歌唱。微风吹过湖面，泛起层层涟漪。',
+      '生活不止眼前的苟且，还有诗和远方的田野。你赤手空拳来到人世间，为找到那片海不顾一切。',
+      '时间是一只藏在黑暗中的温柔的手，在你一出神、一恍惚之间，物走星移。',
+      '世界上最宽阔的是海洋，比海洋更宽阔的是天空，比天空更宽阔的是人的胸怀。'
+    ],
+    hard: [
+      '春天的早晨，阳光明媚，小鸟在枝头欢快地歌唱。微风吹过湖面，泛起层层涟漪；远处的山峰笼罩在薄雾中，若隐若现。',
+      '生活不止眼前的苟且，还有诗和远方的田野。你赤手空拳来到人世间，为找到那片海不顾一切。愿你出走半生，归来仍是少年。',
+      '时间是一只藏在黑暗中的温柔的手，在你一出神、一恍惚之间，物走星移。岁月不居，时节如流。',
+      '世界上最宽阔的是海洋，比海洋更宽阔的是天空，比天空更宽阔的是人的胸怀。海纳百川，有容乃大。'
+    ]
+  },
+  en: {
+    easy: [
+      'The quick brown fox jumps over the lazy dog',
+      'Life is what happens to you while you are busy making other plans',
+      'The only way to do great work is to love what you do',
+      'Success is not final failure is not fatal it is the courage to continue that counts'
+    ],
+    medium: [
+      'The quick brown fox jumps over the lazy dog near the river bank on a sunny afternoon.',
+      'Life is what happens to you while you are busy making other plans. Keep moving forward.',
+      'The only way to do great work is to love what you do and keep learning every single day.',
+      'Success is not final, failure is not fatal: it is the courage to continue that counts.'
+    ],
+    hard: [
+      'The quick brown fox jumps over the lazy dog near the river bank on a sunny afternoon; the birds are singing.',
+      'Life is what happens to you while you are busy making other plans. Keep moving forward, stay focused.',
+      'The only way to do great work is to love what you do and keep learning every single day; never give up.',
+      'Success is not final, failure is not fatal: it is the courage to continue that counts; perseverance is key.'
+    ]
+  }
+};
+
+// 随机单词库
+const wordPool = {
+  zh: ['春天', '阳光', '小鸟', '歌唱', '微风', '湖面', '涟漪', '山峰', '薄雾', '生活', '诗', '远方', '田野', '时间', '黑暗', '温柔', '海洋', '天空', '胸怀', '岁月', '时节', '海纳百川', '出走半生', '归来少年', '赤手空拳', '不顾一切', '若隐若现', '物走星移', '不居如流', '有容乃大'],
+  en: ['the', 'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog', 'life', 'what', 'happens', 'you', 'while', 'busy', 'making', 'other', 'plans', 'only', 'way', 'great', 'work', 'love', 'keep', 'learning', 'every', 'single', 'day', 'success', 'final', 'failure', 'fatal', 'courage', 'continue', 'counts', 'perseverance', 'key', 'never', 'give', 'up', 'stay', 'focused', 'moving', 'forward']
+};
+
+// 选择文本
+function pickText() {
+  if (mode === 'random') {
+    const pool = wordPool[lang];
+    const count = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
+    let result = [];
+    for (let i = 0; i < count; i++) {
+      result.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+    return lang === 'zh' ? result.join('') : result.join(' ');
+  }
+  const pool = texts[lang][difficulty];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// 渲染文本显示
+function renderDisplay() {
+  if (!started || completed) {
+    textDisplay.textContent = target;
+    return;
+  }
+
+  let html = '';
+  const val = textInput.value;
+  for (let i = 0; i < target.length; i++) {
+    let cls = 'untyped';
+    if (i < val.length) {
+      cls = val[i] === target[i] ? 'correct' : 'incorrect';
+    } else if (i === val.length) {
+      cls = 'current';
+    }
+    html += '<span class="' + cls + '">' + target[i] + '</span>';
+  }
+  textDisplay.innerHTML = html;
+}
+
+// 更新统计
+function updateStats() {
+  if (!started || completed) return;
+
+  const elapsed = (Date.now() - startTime) / 60000;
+  if (elapsed < 0.01) return;
+
+  const val = textInput.value;
+  let correct = 0;
+  for (let i = 0; i < Math.min(val.length, target.length); i++) {
+    if (val[i] === target[i]) correct++;
+  }
+
+  const wpm = lang === 'zh'
+    ? Math.round(correct / elapsed)
+    : Math.round((correct / 5) / elapsed);
+
+  wpmEl.textContent = wpm;
+  wpmUnitEl.textContent = lang === 'zh' ? '字/分' : 'WPM';
+
+  const acc = val.length > 0 ? Math.round(correct / val.length * 100) : 100;
+  accuracyEl.textContent = acc + '%';
+
+  timerEl.textContent = Math.round((Date.now() - startTime) / 1000) + 's';
+}
+
+// 检查完成
+function checkComplete() {
+  if (mode === 'countdown') return;
+
+  if (textInput.value.length >= target.length) {
+    completed = true;
+    clearInterval(timer);
+    showResults();
+  }
+}
+
+// 显示结果
+function showResults() {
+  const elapsed = (Date.now() - startTime) / 60000;
+  let correct = 0;
+  for (let i = 0; i < target.length; i++) {
+    if (textInput.value[i] === target[i]) correct++;
+  }
+
+  const wpm = lang === 'zh'
+    ? Math.round(correct / elapsed)
+    : Math.round((correct / 5) / elapsed);
+
+  const acc = Math.round(correct / target.length * 100);
+
+  wpmEl.textContent = wpm;
+  accuracyEl.textContent = acc + '%';
+  timerEl.textContent = Math.round((Date.now() - startTime) / 1000) + 's';
+
+  textInput.disabled = true;
+  renderDisplay();
+
+  saveHistory(wpm, acc);
+}
+
+// 开始测试
+function start() {
+  target = pickText();
+  started = true;
+  completed = false;
+  textInput.value = '';
+  textInput.disabled = false;
+  textInput.focus();
+
+  wpmEl.textContent = '0';
+  accuracyEl.textContent = '--';
+  timerEl.textContent = '0s';
+
+  startTime = Date.now();
+  timer = setInterval(updateStats, 200);
+
+  renderDisplay();
+
+  // 倒计时模式
+  if (mode === 'countdown') {
+    setTimeout(() => {
+      if (started && !completed) {
+        completed = true;
+        clearInterval(timer);
+        showResults();
+      }
+    }, 60000);
+  }
+}
+
+// 保存历史
+function saveHistory(wpm, acc) {
+  const history = JSON.parse(localStorage.getItem('typingHistory') || '[]');
+  history.unshift({
+    id: new Date().toISOString(),
+    date: new Date().toISOString(),
+    mode: mode,
+    lang: lang,
+    difficulty: difficulty,
+    wpm: wpm,
+    accuracy: acc,
+    duration: Math.round((Date.now() - startTime) / 1000),
+    correctChars: wpm,
+    totalChars: target.length
+  });
+
+  if (history.length > 20) history.length = 20;
+
+  localStorage.setItem('typingHistory', JSON.stringify(history));
+  renderHistory();
+  renderLeaderboard();
+}
+
+// 渲染历史记录
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem('typingHistory') || '[]');
+  const historyList = document.getElementById('historyList');
+
+  if (history.length === 0) {
+    historyList.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">暂无记录</div>';
+    return;
+  }
+
+  historyList.innerHTML = history.map(item => `
+    <div class="history-item">
+      <div>
+        <div style="font-weight:600;">${item.wpm} ${item.lang === 'zh' ? '字/分' : 'WPM'}</div>
+        <div style="font-size:11px;color:#94a3b8;">${new Date(item.date).toLocaleDateString()} · ${item.mode === 'text' ? '按文本' : item.mode === 'countdown' ? '60秒' : '随机'} · ${item.accuracy}%</div>
+      </div>
+      <div style="font-size:12px;color:#64748b;">${item.duration}s</div>
+    </div>
+  `).join('');
+}
+
+// 渲染排行榜
+function renderLeaderboard() {
+  const history = JSON.parse(localStorage.getItem('typingHistory') || '[]');
+  const leaderboard = document.getElementById('leaderboardList');
+
+  const sorted = [...history].sort((a, b) => b.wpm - a.wpm).slice(0, 10);
+
+  if (sorted.length === 0) {
+    leaderboard.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;">暂无记录</div>';
+    return;
+  }
+
+  leaderboard.innerHTML = sorted.map((item, i) => `
+    <div class="leaderboard-item">
+      <div>
+        <div style="font-weight:600;">#${i + 1} ${item.wpm} ${item.lang === 'zh' ? '字/分' : 'WPM'}</div>
+        <div style="font-size:11px;color:#94a3b8;">${new Date(item.date).toLocaleDateString()} · ${item.accuracy}%</div>
+      </div>
+      <div style="font-size:12px;color:#64748b;">${item.duration}s</div>
+    </div>
+  `).join('');
+}
+
+// 事件监听
+textInput.addEventListener('input', () => {
+  if (started && !completed) {
+    renderDisplay();
+    checkComplete();
+  }
+});
+
+// 按钮事件
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    lang = btn.dataset.lang;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (started) {
+      clearInterval(timer);
+      started = false;
+    }
+    textInput.value = '';
+    textInput.disabled = true;
+    wpmEl.textContent = '0';
+    accuracyEl.textContent = '--';
+    timerEl.textContent = '0s';
+    target = pickText();
+    renderDisplay();
+  });
+});
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    mode = btn.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (started) {
+      clearInterval(timer);
+      started = false;
+    }
+    textInput.value = '';
+    textInput.disabled = true;
+    wpmEl.textContent = '0';
+    accuracyEl.textContent = '--';
+    timerEl.textContent = '0s';
+    target = pickText();
+    renderDisplay();
+  });
+});
+
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    difficulty = btn.dataset.diff;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (started) {
+      clearInterval(timer);
+      started = false;
+    }
+    textInput.value = '';
+    textInput.disabled = true;
+    wpmEl.textContent = '0';
+    accuracyEl.textContent = '--';
+    timerEl.textContent = '0s';
+    target = pickText();
+    renderDisplay();
+  });
+});
+
+// 高级面板切换
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab' && !started) {
+    e.preventDefault();
+    panelVisible = !panelVisible;
+    advancedPanel.classList.toggle('visible', panelVisible);
+  }
+  if (e.key === 'Escape' && panelVisible) {
+    panelVisible = false;
+    advancedPanel.classList.remove('visible');
+  }
+  if (e.key === 'Enter' && !started) {
+    start();
+  }
+});
+
+// 面板标签切换
+document.querySelectorAll('.panel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+  });
+});
+
+// 清除历史
+document.getElementById('clearHistory').addEventListener('click', () => {
+  localStorage.removeItem('typingHistory');
+  renderHistory();
+  renderLeaderboard();
+});
+
+// 应用自定义文本
+document.getElementById('applyCustom').addEventListener('click', () => {
+  const customText = document.getElementById('customText').value.trim();
+  if (customText) {
+    target = customText;
+    if (started) {
+      clearInterval(timer);
+      started = false;
+    }
+    textInput.value = '';
+    textInput.disabled = true;
+    wpmEl.textContent = '0';
+    accuracyEl.textContent = '--';
+    timerEl.textContent = '0s';
+    renderDisplay();
+
+    panelVisible = false;
+    advancedPanel.classList.remove('visible');
+  }
+});
+
+// 初始化
+target = pickText();
+renderDisplay();
+renderHistory();
+renderLeaderboard();
 </script>
 </body>
 </html>
