@@ -1,0 +1,40 @@
+<h2>重写方案对比</h2>
+<p class="subtitle">选择你偏好的架构方向</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>极简单文件 · 核心优先 (Recommended)</h3>
+      <p>保留项目单文件惯例。优先实现核心打字体验（文本显示、实时反馈、WPM/准确率），高级功能（历史、排行榜、自定义文本）作为可折叠面板。代码量约 400-500 行。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>符合项目单文件模式</li><li>核心体验优先，功能渐进</li><li>维护简单</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>所有功能塞一个文件</li><li>代码较长</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>单文件 · 全功能平铺</h3>
+      <p>所有功能平铺展示，类似当前项目其他游戏的风格。模式选择、难度、倒计时等控件全部可见。代码量约 500-600 行。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>所有选项一目了然</li><li>与项目其他游戏风格统一</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>界面元素较多</li><li>不够专注</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>双文件分离</h3>
+      <p>核心打字测试一个文件，高级功能（历史、排行榜、自定义文本）独立文件。通过链接跳转。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>职责分离清晰</li><li>每个文件较短</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>打破单文件惯例</li><li>需要页面跳转</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

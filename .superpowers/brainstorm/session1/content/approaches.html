@@ -1,0 +1,79 @@
+<h2>选择实现方案</h2>
+<p class="subtitle">根据你的需求，我设计了三种实现方案</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>渐进式改进 (Recommended)</h3>
+      <p>在现有代码基础上逐步添加功能，保持单文件结构</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>优点</h4>
+          <ul>
+            <li>风险低，容易调试</li>
+            <li>保持项目简洁性</li>
+            <li>开发速度快</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>缺点</h4>
+          <ul>
+            <li>代码会变长</li>
+            <li>后续扩展稍复杂</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>模块化重构</h3>
+      <p>将游戏逻辑、UI、音效等拆分成独立模块</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>优点</h4>
+          <ul>
+            <li>代码清晰，易于维护</li>
+            <li>便于后续扩展</li>
+            <li>职责分离明确</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>缺点</h4>
+          <ul>
+            <li>工作量较大</li>
+            <li>需要引入构建工具</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>混合方案</h3>
+      <p>保持单文件，但内部采用模块化代码组织</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>优点</h4>
+          <ul>
+            <li>兼顾简洁和可维护性</li>
+            <li>无需构建工具</li>
+            <li>代码组织清晰</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>缺点</h4>
+          <ul>
+            <li>文件仍然较长</li>
+            <li>需要良好的代码注释</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -13,6 +13,8 @@ body {
   justify-content: center;
   align-items: center;
   background: #f0f2f5;
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 .container {
   text-align: center;
@@ -46,8 +48,9 @@ h1 { font-size: 24px; color: #333; margin-bottom: 16px; }
 }
 .cell {
   display: flex; align-items: center; justify-content: center;
-  width: 64px; height: 64px;
-  font-size: 22px; font-weight: 600;
+  aspect-ratio: 1;
+  font-size: clamp(14px, 4vw, 22px);
+  font-weight: 600;
   color: #333;
   background: #f7f8fa;
   border-radius: 6px;
@@ -65,11 +68,9 @@ h1 { font-size: 24px; color: #333; margin-bottom: 16px; }
   .controls { gap: 8px; flex-wrap: wrap; }
   .info-bar { gap: 10px; font-size: 14px; }
   .info-bar span { padding: 4px 10px; }
-  .cell { width: 48px; height: 48px; font-size: 17px; }
   .grid { gap: 3px; padding: 6px; }
 }
 @media (max-width: 380px) {
-  .cell { width: 40px; height: 40px; font-size: 14px; }
   .grid { gap: 2px; padding: 4px; }
 }
 @keyframes shake {
@@ -181,7 +182,9 @@ function buildGrid() {
   timerEl.textContent = '0.0';
   updateInfo();
 
-  gridEl.style.gridTemplateColumns = `repeat(${size}, 64px)`;
+  const maxW = Math.min(window.innerWidth - 40, 500);
+  const cellW = Math.floor((maxW - 16 - 4 * (size - 1)) / size);
+  gridEl.style.gridTemplateColumns = `repeat(${size}, ${Math.min(cellW, 64)}px)`;
 
   gridEl.innerHTML = '';
   numbers.forEach(num => {

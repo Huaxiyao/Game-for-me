@@ -1,0 +1,48 @@
+<h2>App 导航结构 - 方案 A：底部 Tab 导航</h2>
+<p class="subtitle">所有游戏在底部标签一键切换，设置/主题用顶部图标</p>
+
+<div class="mockup">
+  <div class="mockup-header">首页 - 游戏大厅</div>
+  <div class="mockup-body">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #333;margin-bottom:12px">
+      <span style="font-weight:bold">脑力训练</span>
+      <span>⚙</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="placeholder" style="text-align:center;padding:20px 0">数独</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">扫雷</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">五子棋</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">打字测试</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">反应测试</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">舒尔特方格</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">数字记忆</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">记忆翻牌</div>
+      <div class="placeholder" style="text-align:center;padding:20px 0">CPS 测试</div>
+    </div>
+    <div class="mock-nav" style="text-align:center">首页 | 游戏 | 统计 | 设置</div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="nav-a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>底部 Tab 导航</h3>
+      <p>首页(游戏大厅)、统计、设置三个 Tab；进入游戏后底部变成游戏专属操作栏</p>
+    </div>
+  </div>
+  <div class="option" data-choice="nav-b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>侧边抽屉导航</h3>
+      <p>左上角汉堡菜单打开抽屉，列出所有游戏；进入游戏后返回按钮回到大厅</p>
+    </div>
+  </div>
+  <div class="option" data-choice="nav-c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>纯列表 + 返回</h3>
+      <p>首页就是游戏列表，点击进入游戏；每个游戏左上角有返回键，最简洁</p>
+    </div>
+  </div>
+</div>
